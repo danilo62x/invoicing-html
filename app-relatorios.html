@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <title>Relatórios — Conta Certa</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css" />
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.49.1/dist/apexcharts.min.js"></script>
+  <script src="assets/js/state.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/format.js"></script>
+  <script src="assets/js/query.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/iv.js"></script>
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/i18n.js"></script>
+</head>
+<body data-shell="app" data-guard="true">
+  <div id="app"><div id="page"></div></div>
+
+  <script>
+    const RANGES = [3, 6, 12];
+    const RANGE_LABEL = { 3: 'reports.last3', 6: 'reports.last6', 12: 'reports.last12' };
+
+    let months = 6;
+
+    window.onThemeChange = function () { window.renderPage(); };
+
+    window.renderPage = function () {
+      const t = UI.t, icon = UI.icon, esc = UI.esc;
+      const st = IV.get();
+      const now = new Date();
+      const money = UI.fmt;
+
+      const from = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
+      const range = { from: from.toISOString(), to: now.toISOString() };
+
+      const series = Query.revenueByMonth(st.invoices, st.expenses, months, UI.lang(), now);
+      const byClient = Query.revenueByClient(st.invoices, st.clients, range);
+      const byService = Query.revenueByService(st.invoices, range);
+      const byCategory = Query.expensesByCategory(st.expenses, range);
+      const dre = Query.simplifiedIncomeStatement(st.invoices, st.expenses, range);
+      const taxes = Query.estimatedTaxes(st.invoices, range, st.company.defaultTaxRate + 1);
+
+      const DRE_ROWS = [
+        { key: 'revenue', value: dre.revenue },
+        { key: 'taxes', value: -dre.taxes },
+        { key: 'grossProfit', value: dre.grossProfit, strong: true },
+        { key: 'deductible', value: -dre.deductibleExpenses },
+        { key: 'nonDeductible', value: -dre.nonDeductibleExpenses },
+        { key: 'totalExpenses', value: -dre.totalExpenses, strong: true },
+        { key: 'netProfit', value: dre.netProfit, strong: true },
+      ];
+
+      const periodCard =
+        '<div class="surface-card rounded-2xl border p-5 shadow-theme-sm md:p-6">' +
+        '<h2 class="text-base font-semibold text-heading">' + t('reports.revenueByPeriod') + '</h2>' +
+        '<div class="mt-4" id="chart-period"></div></div>';
+
+      const clientCard =
+        '<div class="surface-card rounded-2xl border p-5 shadow-theme-sm md:p-6">' +
+        '<h2 class="text-base font-semibold text-heading">' + t('reports.revenueByClient') + '</h2>' +
+        (byClient.length === 0
+          ? '<p class="mt-4 text-sm text-muted">' + t('reports.empty') + '</p>'
+          : '<div class="mt-4 overflow-x-auto"><table class="w-full min-w-[420px] text-sm"><thead>' +
+            '<tr class="border-b border-themed text-left text-xs uppercase tracking-wider text-muted">' +
+            '<th class="py-2 pr-4 font-medium">' + t('common.client') + '</th>' +
+            '<th class="w-24 py-2 pr-4 text-right font-medium">' + t('reports.share') + '</th>' +
+            '<th class="w-36 py-2 text-right font-medium">' + t('common.total') + '</th>' +
+            '</tr></thead><tbody class="divide-y divide-[color:var(--tx-border)]">' +
+            byClient.map((row) =>
+              '<tr><td class="py-2.5 pr-4 text-body">' + esc(row.name) + '</td>' +
+              '<td class="py-2.5 pr-4 text-right text-muted">' + row.share + '%</td>' +
+              '<td class="py-2.5 text-right font-medium text-heading">' + money(row.amount) + '</td></tr>'
+            ).join('') + '</tbody></table></div>') +
+        '</div>';
+
+      const categoryCard =
+        '<div class="surface-card rounded-2xl border p-5 shadow-theme-sm md:p-6">' +
+        '<h2 class="text-base font-semibold text-heading">' + t('reports.expensesByCategory') + '</h2>' +
+        (byCategory.length === 0
+          ? '<p class="mt-4 text-sm text-muted">' + t('reports.empty') + '</p>'
+          : '<div class="mt-2" id="chart-categories"></div>') +
+        '</div>';
+
+      const serviceCard =
+        '<div class="surface-card rounded-2xl border p-5 shadow-theme-sm md:p-6">' +
+        '<h2 class="text-base font-semibold text-heading">' + t('reports.revenueByService') + '</h2>' +
+        (byService.length === 0
+          ? '<p class="mt-4 text-sm text-muted">' + t('reports.empty') + '</p>'
+          : '<ul class="mt-5 space-y-4">' + byService.slice(0, 8).map((row) =>
+              '<li><div class="flex items-center justify-between gap-2 text-sm">' +
+              '<span class="truncate text-body">' + esc(row.description) + '</span>' +
+              '<span class="shrink-0 font-medium text-heading">' + money(row.amount) + '</span></div>' +
+              '<div class="mt-2 h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">' +
+              '<div class="h-full rounded-full bg-brand-500" style="width:' + row.share + '%"></div></div>' +
+              '<p class="mt-1 text-xs text-muted">' + t('reports.quantity') + ' ' + UI.fmtNumber(row.quantity) + ' · ' + row.share + '%</p></li>'
+            ).join('') + '</ul>') +
+        '</div>';
+
+      const dreCard =
+        '<div class="surface-card rounded-2xl border p-5 shadow-theme-sm md:p-6">' +
+        '<h2 class="text-base font-semibold text-heading">' + t('reports.incomeStatement') + '</h2>' +
+        '<dl class="mt-4 space-y-2 text-sm">' +
+        DRE_ROWS.map((row) =>
+          '<div class="flex justify-between gap-3 ' + (row.strong ? 'border-t border-themed pt-2 font-semibold text-heading' : 'text-muted') + '">' +
+          '<dt>' + t('reports.dre.' + row.key) + '</dt>' +
+          '<dd class="' + (row.value < 0 && !row.strong ? 'text-error-500' : '') + '">' + money(row.value) + '</dd></div>'
+        ).join('') +
+        '<div class="flex justify-between gap-3 border-t border-themed pt-2 text-muted">' +
+        '<dt>' + t('reports.dre.margin') + '</dt>' +
+        '<dd class="' + (dre.margin >= 0 ? 'text-success-600' : 'text-error-500') + '">' + dre.margin + '%</dd></div>' +
+        '</dl></div>';
+
+      const taxCard =
+        '<div class="surface-card rounded-2xl border p-5 shadow-theme-sm md:p-6">' +
+        '<h2 class="text-base font-semibold text-heading">' + t('reports.taxes') + '</h2>' +
+        '<dl class="mt-4 space-y-2 text-sm">' +
+        '<div class="flex justify-between gap-3 text-muted"><dt>' + t('reports.tax.base') + '</dt><dd>' + money(taxes.base) + '</dd></div>' +
+        '<div class="flex justify-between gap-3 text-muted"><dt>' + t('reports.tax.itemTaxes') + '</dt><dd>' + money(taxes.itemTaxes) + '</dd></div>' +
+        '<div class="flex justify-between gap-3 text-muted"><dt>' + t('reports.tax.rate') + '</dt><dd>' + taxes.simplesRate + '%</dd></div>' +
+        '<div class="flex justify-between gap-3 text-muted"><dt>' + t('reports.tax.simples') + '</dt><dd>' + money(taxes.simples) + '</dd></div>' +
+        '<div class="flex justify-between gap-3 border-t border-themed pt-2 text-base font-bold text-heading">' +
+        '<dt>' + t('reports.tax.total') + '</dt><dd>' + money(taxes.total) + '</dd></div>' +
+        '</dl>' +
+        '<p class="mt-4 flex items-start gap-2 text-xs text-muted">' + icon('info', { size: 14, className: 'mt-0.5 shrink-0' }) +
+        t('reports.tax.note') + '</p></div>';
+
+      const rangeToggle =
+        '<div class="inline-flex rounded-xl border border-themed p-1">' +
+        RANGES.map((option) =>
+          '<button type="button" data-range="' + option + '" class="rounded-lg px-3 py-1.5 text-xs font-medium transition ' +
+          (months === option ? 'bg-brand-500 text-white' : 'text-muted hover:text-heading') + '">' + t(RANGE_LABEL[option]) + '</button>'
+        ).join('') + '</div>';
+
+      document.getElementById('page').innerHTML =
+        UI.pageHeader({
+          title: t('reports.title'),
+          subtitle: t('reports.subtitle'),
+          crumbs: [{ label: t('appNav.dashboard'), href: 'app.html', icon: 'dashboard' }, { label: t('reports.title') }],
+          action: rangeToggle,
+        }) +
+        periodCard +
+        '<div class="mt-6 grid gap-6 xl:grid-cols-2">' + clientCard + categoryCard + '</div>' +
+        '<div class="mt-6 grid gap-6 xl:grid-cols-2">' + serviceCard + '<div class="space-y-6">' + dreCard + taxCard + '</div></div>';
+
+      UI.apexChart('chart-period', {
+        type: 'area',
+        height: 300,
+        series: [
+          { name: t('dashboard.chart.revenue'), data: series.map((p) => p.revenue) },
+          { name: t('dashboard.chart.expenses'), data: series.map((p) => p.expenses) },
+        ],
+        options: {
+          colors: ['#465fff', '#f79009'],
+          xaxis: { categories: series.map((p) => p.label) },
+          yaxis: { labels: { formatter: (v) => UI.fmtCompact(v) } },
+          fill: { type: 'gradient', gradient: { opacityFrom: 0.35, opacityTo: 0.05 } },
+          legend: { position: 'top', horizontalAlign: 'right' },
+          tooltip: { y: { formatter: (v) => money(v) } },
+        },
+      });
+
+      if (byCategory.length) {
+        UI.apexChart('chart-categories', {
+          type: 'donut',
+          height: 300,
+          series: byCategory.map((row) => row.amount),
+          options: {
+            labels: byCategory.map((row) => t('expenseCategories.' + row.category)),
+            legend: { position: 'bottom' },
+            colors: ['#465fff', '#12b76a', '#f79009', '#f04438', '#0ba5ec', '#7592ff', '#32d583', '#fdb022'],
+            tooltip: { y: { formatter: (v) => money(v) } },
+            plotOptions: { pie: { donut: { size: '62%' } } },
+          },
+        });
+      }
+
+      document.querySelectorAll('[data-range]').forEach((el) =>
+        el.addEventListener('click', () => { months = Number(el.getAttribute('data-range')); window.renderPage(); })
+      );
+    };
+  </script>
+  <script src="assets/js/layout.js"></script>
+</body>
+</html>

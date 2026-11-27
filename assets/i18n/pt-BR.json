@@ -1,0 +1,776 @@
+{
+  "brand": "Conta Certa",
+  "common": {
+    "search": "Buscar",
+    "noResults": "Nenhum resultado",
+    "previous": "Anterior",
+    "next": "Avançar",
+    "back": "Voltar",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "close": "Fechar",
+    "edit": "Editar",
+    "remove": "Remover",
+    "delete": "Excluir",
+    "theme": "Tema",
+    "actions": "Ações",
+    "status": "Status",
+    "viewAll": "Ver tudo",
+    "guest": "Convidado",
+    "client": "Cliente",
+    "total": "Total",
+    "details": "Detalhes",
+    "empty": "Nada por aqui ainda"
+  },
+  "time": {
+    "minutes": "há {{count}} min",
+    "hours": "há {{count}} h",
+    "days": "há {{count}} dia(s)"
+  },
+  "nav": {
+    "features": "Recursos",
+    "pricing": "Preços",
+    "about": "Sobre",
+    "contact": "Contato",
+    "login": "Entrar",
+    "trial": "Testar grátis",
+    "dashboard": "Painel"
+  },
+  "appNav": {
+    "billing": "Faturamento",
+    "finance": "Financeiro",
+    "settingsSection": "Conta",
+    "dashboard": "Visão geral",
+    "invoices": "Faturas",
+    "quotes": "Orçamentos",
+    "recurring": "Recorrentes",
+    "clients": "Clientes",
+    "expenses": "Despesas",
+    "reports": "Relatórios",
+    "settings": "Configurações",
+    "notifications": "Notificações",
+    "collapse": "Recolher menu",
+    "logout": "Sair",
+    "newInvoice": "Nova fatura",
+    "openInvoices": "Abrir faturas",
+    "proTitle": "Contas a receber",
+    "proDesc": "Acompanhe o que está em aberto"
+  },
+  "notifications": {
+    "paymentReceived": "Pagamento recebido: {{name}}",
+    "invoiceOverdue": "Fatura {{name}} venceu",
+    "quoteAccepted": "Orçamento {{name}} aceito"
+  },
+  "auth": {
+    "loginTitle": "Entrar no painel",
+    "loginSubtitle": "Acesse as faturas, os recebimentos e os relatórios da sua empresa.",
+    "registerTitle": "Criar conta",
+    "registerSubtitle": "Comece a faturar em minutos, sem planilha.",
+    "email": "E-mail",
+    "password": "Senha",
+    "name": "Nome",
+    "company": "Empresa",
+    "remember": "Manter conectado",
+    "forgot": "Esqueci a senha",
+    "loginCta": "Entrar",
+    "registerCta": "Criar conta",
+    "loggingIn": "Entrando…",
+    "noAccount": "Ainda não tem conta?",
+    "hasAccount": "Já tem conta?",
+    "loginLink": "Entrar",
+    "loginError": "Informe e-mail e senha.",
+    "loginSuccess": "Bem-vinda de volta",
+    "registerSuccess": "Conta criada",
+    "demoTitle": "Conta de demonstração",
+    "demoHint": "Autenticação fictícia: qualquer e-mail e senha entram.",
+    "terms": "Aceito os termos de uso e a política de privacidade."
+  },
+  "validation": {
+    "required": "Campo obrigatório",
+    "email": "E-mail inválido",
+    "min": "Escreva pelo menos {{count}} caracteres"
+  },
+  "invoiceStatuses": {
+    "rascunho": "Rascunho",
+    "enviada": "Enviada",
+    "paga": "Paga",
+    "vencida": "Vencida",
+    "cancelada": "Cancelada"
+  },
+  "quoteStatuses": {
+    "rascunho": "Rascunho",
+    "enviado": "Enviado",
+    "aceito": "Aceito",
+    "recusado": "Recusado",
+    "expirado": "Expirado"
+  },
+  "cycles": {
+    "mensal": "Mensal",
+    "trimestral": "Trimestral",
+    "semestral": "Semestral",
+    "anual": "Anual"
+  },
+  "paymentMethods": {
+    "pix": "PIX",
+    "transferencia": "Transferência",
+    "cartao": "Cartão",
+    "boleto": "Boleto"
+  },
+  "expenseCategories": {
+    "software": "Software",
+    "escritorio": "Escritório",
+    "impostos": "Impostos",
+    "servicos": "Serviços",
+    "marketing": "Marketing",
+    "transporte": "Transporte",
+    "equipamento": "Equipamento",
+    "pessoal": "Pessoal"
+  },
+  "items": {
+    "description": "Descrição",
+    "descriptionPlaceholder": "Serviço prestado",
+    "quantity": "Qtd.",
+    "unitPrice": "Valor unitário",
+    "taxRate": "Imposto",
+    "lineTotal": "Total do item",
+    "add": "Adicionar item",
+    "empty": "Nenhum item lançado",
+    "subtotal": "Subtotal",
+    "taxes": "Impostos",
+    "discount": "Desconto",
+    "discountValue": "R$",
+    "total": "Total"
+  },
+  "document": {
+    "invoice": "Fatura",
+    "taxId": "CNPJ",
+    "issuedAt": "Emissão",
+    "dueAt": "Vencimento",
+    "billTo": "Cobrar de",
+    "amountDue": "Saldo a pagar",
+    "partialNotice": "Pagamento parcial: {{paid}} de {{total}}",
+    "settled": "Quitada",
+    "paid": "Pago",
+    "balance": "Saldo",
+    "terms": "Condições de pagamento",
+    "notes": "Observações",
+    "legalNote": "Documento gerado eletronicamente; não substitui a nota fiscal de serviço."
+  },
+  "payments": {
+    "title": "Registrar pagamento",
+    "subtitle": "Fatura {{number}} · total de {{total}}",
+    "amount": "Valor recebido",
+    "date": "Data do recebimento",
+    "method": "Forma de pagamento",
+    "note": "Observação",
+    "notePlaceholder": "Ex.: entrada, parcela 1 de 2…",
+    "confirm": "Registrar",
+    "full": "Saldo total",
+    "partialHint": "Pagamento parcial: sobram {{remaining}} e a fatura continua enviada.",
+    "history": "Pagamentos",
+    "empty": "Nenhum pagamento registrado",
+    "registered": "Pagamento registrado",
+    "removed": "Pagamento removido"
+  },
+  "editor": {
+    "newInvoice": "Nova fatura",
+    "editInvoice": "Editar fatura",
+    "newQuote": "Novo orçamento",
+    "editQuote": "Editar orçamento",
+    "subtitle": "Total atual: {{total}}",
+    "client": "Cliente",
+    "pickClient": "Selecione o cliente",
+    "issuedAt": "Data de emissão",
+    "dueAt": "Vencimento",
+    "validUntil": "Válido até",
+    "notes": "Observações",
+    "notesPlaceholder": "Aparece no rodapé do documento",
+    "terms": "Condições",
+    "termsPlaceholder": "Ex.: pagamento em até 15 dias corridos",
+    "needItems": "Lance ao menos um item com descrição.",
+    "savedInvoice": "Fatura atualizada",
+    "createdInvoice": "Fatura {{number}} criada",
+    "savedQuote": "Orçamento atualizado",
+    "createdQuote": "Orçamento {{number}} criado"
+  },
+  "landing": {
+    "footer": {
+      "tagline": "Faturamento, cobrança e relatórios para quem presta serviço. Emita, receba e feche o mês sem planilha.",
+      "rights": "Todos os direitos reservados.",
+      "docs": "Documentação",
+      "help": "Ajuda",
+      "privacy": "Privacidade"
+    }
+  },
+  "home": {
+    "hero": {
+      "badge": "Feito para prestador de serviço e pequena empresa",
+      "title": "Emita a fatura, receba no prazo e feche o mês sem planilha",
+      "subtitle": "Faturas com imposto por item, cobrança recorrente, controle de despesas e relatórios prontos para o contador — tudo no mesmo lugar.",
+      "cta": "Criar minha conta",
+      "secondary": "Ver os planos",
+      "note": "14 dias grátis. Sem cartão de crédito."
+    },
+    "stats": {
+      "invoices": "faturas emitidas por mês",
+      "companies": "empresas usando",
+      "hours": "horas devolvidas por mês",
+      "rating": "nota média no suporte"
+    },
+    "features": {
+      "eyebrow": "O que você resolve aqui",
+      "title": "Do orçamento ao recebimento, na mesma tela",
+      "subtitle": "Cada número da sua operação sai de um lugar só: itens, impostos, descontos e pagamentos parciais sempre batendo."
+    },
+    "savings": {
+      "eyebrow": "Quanto custa faturar na mão",
+      "title": "Descubra o tamanho do seu retrabalho",
+      "subtitle": "Ajuste os controles com a sua realidade e veja quanto tempo volta para o seu mês."
+    },
+    "plans": {
+      "eyebrow": "Planos",
+      "title": "Um preço por porte, sem surpresa",
+      "subtitle": "Cancele quando quiser. Todos os planos incluem emissão ilimitada de orçamentos.",
+      "all": "Comparar todos os recursos"
+    },
+    "trust": {
+      "title": "Empresas que já trocaram a planilha pelo Conta Certa"
+    },
+    "cta": {
+      "title": "Comece a faturar ainda hoje",
+      "subtitle": "Importe seus clientes, emita a primeira fatura e acompanhe o recebimento em tempo real.",
+      "button": "Testar 14 dias grátis"
+    },
+    "preview": {
+      "item1": "Suporte técnico avulso (6 h)",
+      "item2": "Hospedagem gerenciada (3 meses)"
+    }
+  },
+  "savings": {
+    "invoices": "Faturas por mês",
+    "minutes": "Minutos por fatura, hoje",
+    "rate": "Valor da sua hora",
+    "minutesValue": "{{count}} min",
+    "resultLabel": "Você recupera por mês",
+    "hoursValue": "{{count}} horas",
+    "ofHours": "de um total de {{count}} horas gastas faturando na mão",
+    "perMonth": "Economia por mês",
+    "perYear": "Economia por ano",
+    "disclaimer": "Estimativa considerando {{percent}}% de redução do tempo manual com emissão automática e cobrança recorrente."
+  },
+  "features": {
+    "eyebrow": "Recursos",
+    "title": "Tudo que o financeiro de um prestador de serviço precisa",
+    "subtitle": "Sem módulo extra, sem cobrança por usuário no plano Pro e sem exportar planilha para o contador.",
+    "detailTitle": "Como cada parte funciona",
+    "ctaTitle": "Quer ver com os seus números?",
+    "ctaSubtitle": "Crie a conta, importe os clientes e emita a primeira fatura em menos de dez minutos.",
+    "ctaButton": "Começar agora"
+  },
+  "featureList": {
+    "invoices": {
+      "title": "Faturas com imposto por item",
+      "desc": "Cada linha tem quantidade, valor unitário e alíquota própria. O desconto pode ser em reais ou em percentual e o total sempre fecha.",
+      "b1": "Numeração automática por prefixo",
+      "b2": "Pagamento parcial com saldo visível",
+      "b3": "Documento pronto para impressão"
+    },
+    "recurring": {
+      "title": "Cobrança recorrente",
+      "desc": "Assinaturas mensais, trimestrais, semestrais ou anuais. O sistema mostra a próxima emissão e guarda o histórico das faturas já geradas.",
+      "b1": "Pausar e retomar quando quiser",
+      "b2": "Receita recorrente mensal calculada",
+      "b3": "Fatura gerada com um clique"
+    },
+    "expenses": {
+      "title": "Despesas e comprovantes",
+      "desc": "Lance a saída, escolha a categoria, marque se é dedutível e anexe o comprovante. O fechamento do mês para de depender da memória.",
+      "b1": "Oito categorias prontas",
+      "b2": "Marcação de dedutível",
+      "b3": "Anexo de comprovante"
+    },
+    "reports": {
+      "title": "Relatórios que o contador entende",
+      "desc": "Receita por período, por cliente e por serviço, despesas por categoria e a DRE simplificada do intervalo escolhido.",
+      "b1": "Comparativo de entradas e saídas",
+      "b2": "Ranking de clientes",
+      "b3": "DRE simplificada"
+    },
+    "taxes": {
+      "title": "Impostos estimados",
+      "desc": "Some o que foi destacado nos itens e a provisão do Simples sobre o faturamento do período — sem susto no dia do DAS.",
+      "b1": "Alíquota do Simples configurável",
+      "b2": "Imposto destacado por item",
+      "b3": "Provisão do período"
+    },
+    "reconciliation": {
+      "title": "Conciliação de recebimentos",
+      "desc": "Registre PIX, transferência, cartão ou boleto. Pagamento parcial mantém a fatura aberta e mostra exatamente quanto falta.",
+      "b1": "Quatro formas de pagamento",
+      "b2": "Histórico por fatura",
+      "b3": "Saldo em aberto sempre atualizado"
+    }
+  },
+  "pricing": {
+    "eyebrow": "Preços",
+    "title": "Escolha pelo volume de faturas, não pelo tamanho da promessa",
+    "subtitle": "Troque de plano a qualquer momento. A cobrança é proporcional.",
+    "monthly": "Mensal",
+    "yearly": "Anual",
+    "perMonth": "/mês",
+    "yearlyNote": "Dois meses grátis no plano anual",
+    "mostPopular": "Mais escolhido",
+    "choose": "Começar com este plano",
+    "invoicesIncluded": "{{count}} faturas por mês",
+    "faqTitle": "Perguntas frequentes",
+    "guarantee": "Sem fidelidade, sem taxa de cancelamento e com exportação completa dos seus dados."
+  },
+  "plans": {
+    "solo": {
+      "name": "Solo",
+      "pitch": "Para quem fatura sozinho e quer sair da planilha."
+    },
+    "pro": {
+      "name": "Pro",
+      "pitch": "Para a pequena empresa com carteira recorrente."
+    },
+    "empresa": {
+      "name": "Empresa",
+      "pitch": "Para o time financeiro com vários responsáveis."
+    }
+  },
+  "planFeatures": {
+    "invoices": "Faturas com imposto por item",
+    "clients": "Cadastro de clientes com dados fiscais",
+    "quotes": "Orçamentos ilimitados",
+    "recurring": "Cobrança recorrente",
+    "expenses": "Controle de despesas",
+    "reports": "Relatórios e DRE simplificada",
+    "multiUser": "Vários usuários",
+    "api": "API e integrações",
+    "support": "Suporte prioritário",
+    "export": "Exportação para o contador"
+  },
+  "faq": {
+    "nfe": {
+      "q": "O Conta Certa emite nota fiscal?",
+      "a": "A fatura organiza a cobrança e o recebimento. A emissão da NFS-e continua no portal da sua prefeitura, e você anexa o número no documento."
+    },
+    "migrate": {
+      "q": "Consigo trazer meus clientes da planilha?",
+      "a": "Sim. A importação aceita CSV com nome, razão social, CNPJ, e-mail e prazo de pagamento padrão."
+    },
+    "cancel": {
+      "q": "Posso cancelar quando quiser?",
+      "a": "Pode. Não há fidelidade nem multa, e você leva todos os dados em CSV e PDF."
+    },
+    "accountant": {
+      "q": "Meu contador consegue acessar?",
+      "a": "No plano Empresa você adiciona o contador como usuário somente leitura. Nos demais, envie o relatório do período em um clique."
+    },
+    "security": {
+      "q": "Como os dados ficam guardados?",
+      "a": "Tudo trafega criptografado, com backup diário e registro de quem alterou cada documento."
+    },
+    "trial": {
+      "q": "Como funciona o teste grátis?",
+      "a": "São 14 dias com todos os recursos do plano Pro, sem cartão de crédito. Ao final você escolhe o plano ou exporta os dados."
+    }
+  },
+  "about": {
+    "eyebrow": "Sobre",
+    "title": "Nasceu de um fechamento de mês que não fechava",
+    "subtitle": "Somos um time pequeno de produto, contabilidade e suporte obcecado por números que batem.",
+    "storyTitle": "A história",
+    "story1": "Em 2019 atendíamos vinte clientes com uma planilha compartilhada e um modelo de fatura no editor de texto. Todo dia 5 alguém descobria uma cobrança esquecida, um desconto aplicado duas vezes ou um imposto no item errado.",
+    "story2": "O Conta Certa começou como a ferramenta interna que resolvia isso: uma única fonte para item, imposto, desconto e pagamento. Quando o terceiro cliente pediu acesso, viramos produto.",
+    "teamTitle": "Quem toca o dia a dia",
+    "timelineTitle": "Linha do tempo",
+    "numbersTitle": "Hoje em números",
+    "valuesTitle": "No que a gente não abre mão"
+  },
+  "timeline": {
+    "founded": {
+      "year": "2019",
+      "title": "Primeira versão interna",
+      "desc": "Uma planilha aposentada e um gerador de faturas feito para uso próprio."
+    },
+    "firstThousand": {
+      "year": "2021",
+      "title": "Mil empresas faturando",
+      "desc": "O produto sai da gaveta e ganha cadastro de clientes, orçamentos e despesas."
+    },
+    "recurring": {
+      "year": "2023",
+      "title": "Cobrança recorrente",
+      "desc": "Assinaturas, geração automática de fatura e conciliação de recebimentos."
+    },
+    "today": {
+      "year": "Hoje",
+      "title": "Relatórios e impostos",
+      "desc": "DRE simplificada, impostos estimados e exportação pronta para o contador."
+    }
+  },
+  "values": {
+    "numbers": {
+      "title": "Número que não bate é bug",
+      "desc": "Total, desconto, imposto e saldo saem de uma função só — e nós testamos cada uma."
+    },
+    "simple": {
+      "title": "Simples antes de completo",
+      "desc": "Preferimos uma tela que o cliente entende sozinho a um módulo que precisa de treinamento."
+    },
+    "support": {
+      "title": "Suporte de gente",
+      "desc": "Quem responde o chat conhece o produto e já emitiu fatura na vida."
+    }
+  },
+  "team": {
+    "ana": {
+      "name": "Ana Beatriz Moraes",
+      "role": "Cofundadora e produto",
+      "bio": "Passou dez anos no financeiro de agências antes de virar a mesa e construir a ferramenta."
+    },
+    "rafael": {
+      "name": "Rafael Nakamura",
+      "role": "Engenharia",
+      "bio": "Cuida do motor de cálculo e das integrações bancárias. Odeia arredondamento errado."
+    },
+    "juliana": {
+      "name": "Juliana Fontes",
+      "role": "Contabilidade",
+      "bio": "Contadora responsável pela régua fiscal, pelos relatórios e pela DRE simplificada."
+    },
+    "marcos": {
+      "name": "Marcos Vinícius Leal",
+      "role": "Suporte e implantação",
+      "bio": "Atende a migração das planilhas e o primeiro mês de cada cliente novo."
+    }
+  },
+  "contact": {
+    "eyebrow": "Contato",
+    "title": "Fale com quem cuida do produto",
+    "subtitle": "Respondemos em até um dia útil. Se for urgente, o chat do painel é mais rápido.",
+    "channels": {
+      "email": "E-mail",
+      "phone": "Telefone",
+      "address": "Endereço",
+      "hours": "Atendimento",
+      "hoursValue": "Seg a sex, 9h às 18h"
+    },
+    "form": {
+      "name": "Nome",
+      "email": "E-mail",
+      "company": "Empresa",
+      "phone": "Telefone",
+      "subject": "Assunto",
+      "subjectPlaceholder": "Selecione o assunto",
+      "message": "Mensagem",
+      "messagePlaceholder": "Conte o que você precisa resolver no financeiro.",
+      "submit": "Enviar mensagem"
+    },
+    "subjects": {
+      "demo": "Quero uma demonstração",
+      "support": "Suporte técnico",
+      "billing": "Dúvida sobre cobrança",
+      "partnership": "Parceria com escritório contábil"
+    },
+    "success": "Mensagem enviada. Falamos com você em breve.",
+    "mapPlaceholder": "Av. Paulista, 1842 — São Paulo/SP"
+  },
+  "dashboard": {
+    "title": "Visão geral",
+    "subtitle": "O caixa do mês, o que está em aberto e o que já venceu.",
+    "kpi": {
+      "receivable": "A receber",
+      "receivableHint": "{{count}} faturas em aberto",
+      "overdue": "Vencido",
+      "overdueHint": "{{count}} faturas em atraso",
+      "received": "Recebido no mês",
+      "receivedHint": "Pagamentos com data neste mês",
+      "expenses": "Despesas do mês",
+      "expensesHint": "{{count}} lançamentos"
+    },
+    "chart": {
+      "title": "Entradas × saídas",
+      "months": "Últimos {{count}} meses",
+      "revenue": "Entradas",
+      "expenses": "Saídas"
+    },
+    "upcoming": {
+      "title": "Faturas vencendo",
+      "empty": "Nada vence nos próximos 15 dias.",
+      "dueIn": "vence em {{count}} dia(s)"
+    },
+    "overdueList": {
+      "title": "Em atraso",
+      "empty": "Nenhuma fatura em atraso.",
+      "daysLate": "{{count}} dia(s) de atraso"
+    },
+    "topClients": {
+      "title": "Top clientes",
+      "empty": "Nenhuma fatura emitida ainda.",
+      "invoices": "{{count}} faturas"
+    },
+    "projected": {
+      "title": "Saldo projetado",
+      "hint": "Recebido no mês + a receber − despesas do mês"
+    }
+  },
+  "invoices": {
+    "title": "Faturas",
+    "subtitle": "Emita, envie, receba e acompanhe o saldo de cada documento.",
+    "new": "Nova fatura",
+    "number": "Número",
+    "client": "Cliente",
+    "issuedAt": "Emissão",
+    "dueAt": "Vencimento",
+    "total": "Total",
+    "balance": "Saldo",
+    "searchPlaceholder": "Número, cliente ou observação",
+    "filterStatus": "Status",
+    "filterClient": "Cliente",
+    "filterFrom": "De",
+    "filterTo": "Até",
+    "allStatuses": "Todos os status",
+    "allClients": "Todos os clientes",
+    "empty": "Nenhuma fatura encontrada",
+    "emptyDesc": "Ajuste os filtros ou emita a primeira fatura do período.",
+    "view": "Abrir",
+    "markPaid": "Marcar como paga",
+    "duplicate": "Duplicar",
+    "send": "Enviar",
+    "cancelInvoice": "Cancelar fatura",
+    "confirmDelete": "Excluir esta fatura? A ação não pode ser desfeita.",
+    "sent": "Fatura enviada",
+    "duplicated": "Fatura duplicada: {{number}}",
+    "cancelled": "Fatura cancelada",
+    "paid": "Fatura quitada",
+    "deleted": "Fatura excluída",
+    "summaryOpen": "Em aberto",
+    "summaryOverdue": "Vencido",
+    "summaryPaid": "Recebido",
+    "count": "{{count}} faturas no filtro"
+  },
+  "invoiceDetail": {
+    "back": "Voltar para faturas",
+    "notFound": "Fatura não encontrada",
+    "notFoundDesc": "O documento pode ter sido excluído ou o link está errado.",
+    "print": "Imprimir",
+    "registerPayment": "Registrar pagamento",
+    "summaryTitle": "Resumo",
+    "historyTitle": "Histórico de status",
+    "dueIn": "Vence em {{count}} dia(s)",
+    "overdueBy": "Vencida há {{count}} dia(s)",
+    "paidPercent": "{{count}}% do total já recebido",
+    "timeline": {
+      "created": "Fatura criada",
+      "sent": "Enviada ao cliente",
+      "payment": "Pagamento de {{amount}} via {{method}}",
+      "paid": "Quitada",
+      "cancelled": "Cancelada",
+      "overdue": "Venceu sem pagamento"
+    }
+  },
+  "quotes": {
+    "title": "Orçamentos",
+    "subtitle": "Proposta enviada, aceita ou recusada — e a conversão em fatura com um clique.",
+    "new": "Novo orçamento",
+    "number": "Número",
+    "validUntil": "Válido até",
+    "accept": "Aceitar",
+    "reject": "Recusar",
+    "convert": "Converter em fatura",
+    "converted": "Fatura {{number}} gerada a partir do orçamento",
+    "accepted": "Orçamento aceito",
+    "rejected": "Orçamento recusado",
+    "deleted": "Orçamento excluído",
+    "confirmDelete": "Excluir este orçamento?",
+    "empty": "Nenhum orçamento",
+    "emptyDesc": "Crie a primeira proposta para este período.",
+    "summaryOpen": "Em negociação",
+    "summaryAccepted": "Aceitos",
+    "summaryValue": "Valor em negociação"
+  },
+  "recurring": {
+    "title": "Recorrentes",
+    "subtitle": "Assinaturas ativas, próxima emissão e as faturas já geradas.",
+    "new": "Nova assinatura",
+    "value": "Valor por ciclo",
+    "cycle": "Ciclo",
+    "nextIssue": "Próxima emissão",
+    "active": "Ativa",
+    "paused": "Pausada",
+    "pause": "Pausar",
+    "resume": "Retomar",
+    "generate": "Gerar fatura",
+    "generated": "Fatura {{number}} gerada",
+    "generatedInvoices": "Faturas geradas",
+    "noGenerated": "Nenhuma fatura gerada ainda",
+    "empty": "Nenhuma assinatura",
+    "emptyDesc": "Cadastre um contrato recorrente para automatizar a cobrança.",
+    "mrr": "Receita recorrente mensal",
+    "arr": "Receita recorrente anual",
+    "activeCount": "Assinaturas ativas",
+    "deleted": "Assinatura removida",
+    "confirmDelete": "Remover esta assinatura?"
+  },
+  "clients": {
+    "title": "Clientes",
+    "subtitle": "Dados fiscais, condição de pagamento padrão e o extrato de cada um.",
+    "new": "Novo cliente",
+    "name": "Nome",
+    "legalName": "Razão social",
+    "taxId": "CNPJ",
+    "email": "E-mail",
+    "phone": "Telefone",
+    "address": "Endereço",
+    "paymentTerm": "Prazo de pagamento",
+    "days": "dias",
+    "notes": "Observações",
+    "statement": "Extrato",
+    "billed": "Faturado",
+    "received": "Recebido",
+    "open": "Em aberto",
+    "overdue": "Vencido",
+    "invoiceCount": "{{count}} faturas",
+    "viewStatement": "Ver extrato",
+    "empty": "Nenhum cliente",
+    "emptyDesc": "Cadastre o primeiro cliente para emitir faturas.",
+    "created": "Cliente cadastrado",
+    "saved": "Cliente atualizado",
+    "deleted": "Cliente removido",
+    "confirmDelete": "Remover este cliente? As faturas dele continuam no histórico.",
+    "noInvoices": "Este cliente ainda não tem faturas."
+  },
+  "expenses": {
+    "title": "Despesas",
+    "subtitle": "Lançamentos por categoria, com comprovante e marcação de dedutível.",
+    "new": "Nova despesa",
+    "date": "Data",
+    "description": "Descrição",
+    "category": "Categoria",
+    "supplier": "Fornecedor",
+    "amount": "Valor",
+    "deductible": "Dedutível",
+    "receipt": "Comprovante",
+    "noReceipt": "Sem comprovante",
+    "attach": "Nome do arquivo do comprovante",
+    "filterCategory": "Categoria",
+    "allCategories": "Todas as categorias",
+    "empty": "Nenhuma despesa",
+    "emptyDesc": "Lance a primeira saída do período.",
+    "created": "Despesa lançada",
+    "saved": "Despesa atualizada",
+    "deleted": "Despesa removida",
+    "confirmDelete": "Remover esta despesa?",
+    "totalPeriod": "Total do período",
+    "deductibleTotal": "Dedutível",
+    "nonDeductibleTotal": "Não dedutível",
+    "byCategory": "Por categoria"
+  },
+  "reports": {
+    "title": "Relatórios",
+    "subtitle": "Receita, despesa, resultado e impostos do período escolhido.",
+    "period": "Período",
+    "last3": "Últimos 3 meses",
+    "last6": "Últimos 6 meses",
+    "last12": "Últimos 12 meses",
+    "revenueByPeriod": "Receita por período",
+    "revenueByClient": "Receita por cliente",
+    "revenueByService": "Receita por serviço",
+    "expensesByCategory": "Despesas por categoria",
+    "incomeStatement": "DRE simplificada",
+    "taxes": "Impostos estimados",
+    "share": "Participação",
+    "quantity": "Qtd.",
+    "empty": "Sem dados no período selecionado.",
+    "dre": {
+      "revenue": "Receita bruta faturada",
+      "taxes": "(−) Impostos destacados",
+      "grossProfit": "(=) Receita líquida",
+      "deductible": "(−) Despesas dedutíveis",
+      "nonDeductible": "(−) Despesas não dedutíveis",
+      "totalExpenses": "(=) Total de despesas",
+      "netProfit": "(=) Resultado do período",
+      "margin": "Margem líquida"
+    },
+    "tax": {
+      "base": "Base de cálculo (faturamento)",
+      "itemTaxes": "Impostos destacados nos itens",
+      "simples": "Provisão do Simples Nacional",
+      "rate": "Alíquota do Simples",
+      "total": "Total a provisionar",
+      "note": "Estimativa para planejamento; confirme a alíquota efetiva com o seu contador."
+    }
+  },
+  "settings": {
+    "title": "Configurações",
+    "subtitle": "Perfil, dados da empresa, numeração, impostos padrão e preferências.",
+    "saved": "Preferência salva",
+    "tabs": {
+      "profile": "Perfil",
+      "company": "Empresa",
+      "numbering": "Numeração",
+      "defaults": "Padrões",
+      "preferences": "Preferências"
+    },
+    "profile": {
+      "title": "Seus dados",
+      "name": "Nome",
+      "email": "E-mail",
+      "role": "Função",
+      "saved": "Perfil atualizado"
+    },
+    "company": {
+      "title": "Dados da empresa emitente",
+      "name": "Nome fantasia",
+      "legalName": "Razão social",
+      "taxId": "CNPJ",
+      "address": "Endereço",
+      "email": "E-mail",
+      "phone": "Telefone",
+      "logoText": "Sigla do logo",
+      "saved": "Dados da empresa atualizados"
+    },
+    "numbering": {
+      "title": "Numeração das faturas",
+      "prefix": "Prefixo",
+      "nextNumber": "Próximo número",
+      "preview": "A próxima fatura sairá como",
+      "hint": "O número é montado com o prefixo mais quatro dígitos e avança sozinho a cada emissão.",
+      "saved": "Numeração atualizada"
+    },
+    "defaults": {
+      "title": "Impostos e condições padrão",
+      "taxRate": "Alíquota padrão do item (%)",
+      "termDays": "Prazo padrão de pagamento (dias)",
+      "hint": "Usados ao criar um item novo e ao calcular o vencimento das faturas.",
+      "saved": "Padrões atualizados"
+    },
+    "preferences": {
+      "title": "Aparência e dados",
+      "darkMode": "Tema escuro",
+      "darkModeDesc": "Alterna o painel entre claro e escuro.",
+      "language": "Idioma",
+      "languageDesc": "Vale para textos, moeda e formato de data.",
+      "resetData": "Restaurar dados de demonstração",
+      "resetDataDesc": "Volta clientes, faturas, orçamentos e despesas ao estado original.",
+      "resetButton": "Restaurar",
+      "resetDone": "Dados de demonstração restaurados"
+    }
+  },
+  "notFound": {
+    "title": "Página não encontrada",
+    "desc": "O endereço não existe ou o documento foi removido.",
+    "back": "Voltar ao painel",
+    "home": "Ir para a home"
+  },
+  "cookie": {
+    "title": "Cookies",
+    "desc": "Usamos cookies para manter você conectado e medir o uso do painel.",
+    "policy": "Política de privacidade",
+    "accept": "Aceitar",
+    "decline": "Recusar"
+  }
+}

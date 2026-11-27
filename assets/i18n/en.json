@@ -1,0 +1,776 @@
+{
+  "brand": "Conta Certa",
+  "common": {
+    "search": "Search",
+    "noResults": "No results",
+    "previous": "Previous",
+    "next": "Next",
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "edit": "Edit",
+    "remove": "Remove",
+    "delete": "Delete",
+    "theme": "Theme",
+    "actions": "Actions",
+    "status": "Status",
+    "viewAll": "View all",
+    "guest": "Guest",
+    "client": "Client",
+    "total": "Total",
+    "details": "Details",
+    "empty": "Nothing here yet"
+  },
+  "time": {
+    "minutes": "{{count}} min ago",
+    "hours": "{{count}} h ago",
+    "days": "{{count}} day(s) ago"
+  },
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "about": "About",
+    "contact": "Contact",
+    "login": "Sign in",
+    "trial": "Start free",
+    "dashboard": "Dashboard"
+  },
+  "appNav": {
+    "billing": "Billing",
+    "finance": "Finance",
+    "settingsSection": "Account",
+    "dashboard": "Overview",
+    "invoices": "Invoices",
+    "quotes": "Quotes",
+    "recurring": "Recurring",
+    "clients": "Clients",
+    "expenses": "Expenses",
+    "reports": "Reports",
+    "settings": "Settings",
+    "notifications": "Notifications",
+    "collapse": "Collapse menu",
+    "logout": "Sign out",
+    "newInvoice": "New invoice",
+    "openInvoices": "Open invoices",
+    "proTitle": "Accounts receivable",
+    "proDesc": "Track what is still open"
+  },
+  "notifications": {
+    "paymentReceived": "Payment received: {{name}}",
+    "invoiceOverdue": "Invoice {{name}} is past due",
+    "quoteAccepted": "Quote {{name}} accepted"
+  },
+  "auth": {
+    "loginTitle": "Sign in to the dashboard",
+    "loginSubtitle": "Open your invoices, payments and reports.",
+    "registerTitle": "Create account",
+    "registerSubtitle": "Start invoicing in minutes — no spreadsheet.",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "company": "Company",
+    "remember": "Keep me signed in",
+    "forgot": "Forgot password",
+    "loginCta": "Sign in",
+    "registerCta": "Create account",
+    "loggingIn": "Signing in…",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginLink": "Sign in",
+    "loginError": "Enter your email and password.",
+    "loginSuccess": "Welcome back",
+    "registerSuccess": "Account created",
+    "demoTitle": "Demo account",
+    "demoHint": "Mock authentication: any email and password work.",
+    "terms": "I accept the terms of use and the privacy policy."
+  },
+  "validation": {
+    "required": "Required field",
+    "email": "Invalid email",
+    "min": "Write at least {{count}} characters"
+  },
+  "invoiceStatuses": {
+    "rascunho": "Draft",
+    "enviada": "Sent",
+    "paga": "Paid",
+    "vencida": "Overdue",
+    "cancelada": "Cancelled"
+  },
+  "quoteStatuses": {
+    "rascunho": "Draft",
+    "enviado": "Sent",
+    "aceito": "Accepted",
+    "recusado": "Declined",
+    "expirado": "Expired"
+  },
+  "cycles": {
+    "mensal": "Monthly",
+    "trimestral": "Quarterly",
+    "semestral": "Half-yearly",
+    "anual": "Yearly"
+  },
+  "paymentMethods": {
+    "pix": "PIX",
+    "transferencia": "Bank transfer",
+    "cartao": "Card",
+    "boleto": "Bank slip"
+  },
+  "expenseCategories": {
+    "software": "Software",
+    "escritorio": "Office",
+    "impostos": "Taxes",
+    "servicos": "Services",
+    "marketing": "Marketing",
+    "transporte": "Travel",
+    "equipamento": "Equipment",
+    "pessoal": "Payroll"
+  },
+  "items": {
+    "description": "Description",
+    "descriptionPlaceholder": "Service delivered",
+    "quantity": "Qty",
+    "unitPrice": "Unit price",
+    "taxRate": "Tax",
+    "lineTotal": "Line total",
+    "add": "Add item",
+    "empty": "No items yet",
+    "subtotal": "Subtotal",
+    "taxes": "Taxes",
+    "discount": "Discount",
+    "discountValue": "$",
+    "total": "Total"
+  },
+  "document": {
+    "invoice": "Invoice",
+    "taxId": "Tax ID",
+    "issuedAt": "Issued",
+    "dueAt": "Due",
+    "billTo": "Bill to",
+    "amountDue": "Amount due",
+    "partialNotice": "Partial payment: {{paid}} of {{total}}",
+    "settled": "Settled",
+    "paid": "Paid",
+    "balance": "Balance",
+    "terms": "Payment terms",
+    "notes": "Notes",
+    "legalNote": "Electronically generated document; it does not replace the official service invoice."
+  },
+  "payments": {
+    "title": "Register payment",
+    "subtitle": "Invoice {{number}} · total of {{total}}",
+    "amount": "Amount received",
+    "date": "Payment date",
+    "method": "Payment method",
+    "note": "Note",
+    "notePlaceholder": "e.g. deposit, instalment 1 of 2…",
+    "confirm": "Register",
+    "full": "Full balance",
+    "partialHint": "Partial payment: {{remaining}} left and the invoice stays sent.",
+    "history": "Payments",
+    "empty": "No payments registered",
+    "registered": "Payment registered",
+    "removed": "Payment removed"
+  },
+  "editor": {
+    "newInvoice": "New invoice",
+    "editInvoice": "Edit invoice",
+    "newQuote": "New quote",
+    "editQuote": "Edit quote",
+    "subtitle": "Current total: {{total}}",
+    "client": "Client",
+    "pickClient": "Select the client",
+    "issuedAt": "Issue date",
+    "dueAt": "Due date",
+    "validUntil": "Valid until",
+    "notes": "Notes",
+    "notesPlaceholder": "Shown in the document footer",
+    "terms": "Terms",
+    "termsPlaceholder": "e.g. payment within 15 days",
+    "needItems": "Add at least one item with a description.",
+    "savedInvoice": "Invoice updated",
+    "createdInvoice": "Invoice {{number}} created",
+    "savedQuote": "Quote updated",
+    "createdQuote": "Quote {{number}} created"
+  },
+  "landing": {
+    "footer": {
+      "tagline": "Invoicing, collection and reports for service providers. Issue it, get paid and close the month without a spreadsheet.",
+      "rights": "All rights reserved.",
+      "docs": "Documentation",
+      "help": "Help",
+      "privacy": "Privacy"
+    }
+  },
+  "home": {
+    "hero": {
+      "badge": "Built for freelancers and small businesses",
+      "title": "Issue the invoice, get paid on time, close the month without a spreadsheet",
+      "subtitle": "Per-item taxes, recurring billing, expense tracking and reports your accountant understands — all in one place.",
+      "cta": "Create my account",
+      "secondary": "See the plans",
+      "note": "14 days free. No credit card."
+    },
+    "stats": {
+      "invoices": "invoices issued per month",
+      "companies": "companies on board",
+      "hours": "hours given back each month",
+      "rating": "average support rating"
+    },
+    "features": {
+      "eyebrow": "What you solve here",
+      "title": "From the quote to the payment, on the same screen",
+      "subtitle": "Every number comes from a single source: items, taxes, discounts and partial payments always add up."
+    },
+    "savings": {
+      "eyebrow": "What manual invoicing costs",
+      "title": "Find out how big your rework really is",
+      "subtitle": "Adjust the sliders to your reality and see how much time comes back to your month."
+    },
+    "plans": {
+      "eyebrow": "Plans",
+      "title": "One price per company size, no surprises",
+      "subtitle": "Cancel any time. Every plan includes unlimited quotes.",
+      "all": "Compare all features"
+    },
+    "trust": {
+      "title": "Companies that already traded the spreadsheet for Conta Certa"
+    },
+    "cta": {
+      "title": "Start invoicing today",
+      "subtitle": "Import your clients, issue the first invoice and follow the payment in real time.",
+      "button": "Try 14 days free"
+    },
+    "preview": {
+      "item1": "Ad-hoc technical support (6 h)",
+      "item2": "Managed hosting (3 months)"
+    }
+  },
+  "savings": {
+    "invoices": "Invoices per month",
+    "minutes": "Minutes per invoice today",
+    "rate": "Your hourly rate",
+    "minutesValue": "{{count}} min",
+    "resultLabel": "You get back every month",
+    "hoursValue": "{{count}} hours",
+    "ofHours": "out of {{count}} hours spent invoicing by hand",
+    "perMonth": "Savings per month",
+    "perYear": "Savings per year",
+    "disclaimer": "Estimate assuming a {{percent}}% cut in manual time with automatic issuing and recurring billing."
+  },
+  "features": {
+    "eyebrow": "Features",
+    "title": "Everything a service business needs from its finance stack",
+    "subtitle": "No extra module, no per-seat charge on the Pro plan and no spreadsheet export for the accountant.",
+    "detailTitle": "How each part works",
+    "ctaTitle": "Want to see it with your own numbers?",
+    "ctaSubtitle": "Create the account, import the clients and issue the first invoice in under ten minutes.",
+    "ctaButton": "Get started"
+  },
+  "featureList": {
+    "invoices": {
+      "title": "Invoices with per-item tax",
+      "desc": "Each line carries its own quantity, unit price and tax rate. The discount can be a fixed amount or a percentage, and the total always closes.",
+      "b1": "Automatic numbering by prefix",
+      "b2": "Partial payment with visible balance",
+      "b3": "Print-ready document"
+    },
+    "recurring": {
+      "title": "Recurring billing",
+      "desc": "Monthly, quarterly, half-yearly or yearly subscriptions. The app shows the next issue date and keeps the history of invoices already generated.",
+      "b1": "Pause and resume any time",
+      "b2": "Monthly recurring revenue calculated",
+      "b3": "Invoice generated in one click"
+    },
+    "expenses": {
+      "title": "Expenses and receipts",
+      "desc": "Log the outflow, pick a category, flag it as deductible and attach the receipt. Closing the month stops depending on memory.",
+      "b1": "Eight ready-made categories",
+      "b2": "Deductible flag",
+      "b3": "Receipt attachment"
+    },
+    "reports": {
+      "title": "Reports your accountant understands",
+      "desc": "Revenue by period, by client and by service, expenses by category and a simplified income statement for the chosen range.",
+      "b1": "Cash in versus cash out",
+      "b2": "Client ranking",
+      "b3": "Simplified income statement"
+    },
+    "taxes": {
+      "title": "Estimated taxes",
+      "desc": "Add up what was charged on the items plus the provision on the period's revenue — no surprises on tax day.",
+      "b1": "Configurable tax rate",
+      "b2": "Tax broken down per item",
+      "b3": "Provision for the period"
+    },
+    "reconciliation": {
+      "title": "Payment reconciliation",
+      "desc": "Register PIX, bank transfer, card or bank slip. A partial payment keeps the invoice open and shows exactly what is left.",
+      "b1": "Four payment methods",
+      "b2": "History per invoice",
+      "b3": "Outstanding balance always current"
+    }
+  },
+  "pricing": {
+    "eyebrow": "Pricing",
+    "title": "Pick by invoice volume, not by the size of the promise",
+    "subtitle": "Switch plans whenever you like — billing is prorated.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "perMonth": "/month",
+    "yearlyNote": "Two months free on the yearly plan",
+    "mostPopular": "Most chosen",
+    "choose": "Start with this plan",
+    "invoicesIncluded": "{{count}} invoices per month",
+    "faqTitle": "Frequently asked questions",
+    "guarantee": "No lock-in, no cancellation fee and a full export of your data."
+  },
+  "plans": {
+    "solo": {
+      "name": "Solo",
+      "pitch": "For whoever invoices alone and wants out of the spreadsheet."
+    },
+    "pro": {
+      "name": "Pro",
+      "pitch": "For the small business with a recurring client base."
+    },
+    "empresa": {
+      "name": "Business",
+      "pitch": "For a finance team with several people involved."
+    }
+  },
+  "planFeatures": {
+    "invoices": "Invoices with per-item tax",
+    "clients": "Client records with tax data",
+    "quotes": "Unlimited quotes",
+    "recurring": "Recurring billing",
+    "expenses": "Expense tracking",
+    "reports": "Reports and simplified income statement",
+    "multiUser": "Multiple users",
+    "api": "API and integrations",
+    "support": "Priority support",
+    "export": "Export for the accountant"
+  },
+  "faq": {
+    "nfe": {
+      "q": "Does Conta Certa issue the official tax invoice?",
+      "a": "The invoice organises the charge and the payment. The official service invoice is still issued on your city portal, and you attach the number to the document."
+    },
+    "migrate": {
+      "q": "Can I bring my clients over from a spreadsheet?",
+      "a": "Yes. The importer accepts CSV with name, legal name, tax ID, email and default payment term."
+    },
+    "cancel": {
+      "q": "Can I cancel whenever I want?",
+      "a": "You can. There is no lock-in or penalty, and you take every record with you in CSV and PDF."
+    },
+    "accountant": {
+      "q": "Can my accountant get access?",
+      "a": "On the Business plan you add the accountant as a read-only user. On the others, send the period report in one click."
+    },
+    "security": {
+      "q": "How is the data stored?",
+      "a": "Everything travels encrypted, with daily backups and a log of who changed each document."
+    },
+    "trial": {
+      "q": "How does the free trial work?",
+      "a": "It is 14 days with every Pro feature, no credit card. At the end you pick a plan or export the data."
+    }
+  },
+  "about": {
+    "eyebrow": "About",
+    "title": "Born out of a month-end that never closed",
+    "subtitle": "We are a small team of product, accounting and support people obsessed with numbers that add up.",
+    "storyTitle": "The story",
+    "story1": "In 2019 we served twenty clients with a shared spreadsheet and an invoice template in a word processor. Every month someone found a forgotten charge, a discount applied twice or a tax on the wrong line.",
+    "story2": "Conta Certa started as the internal tool that fixed it: a single source for item, tax, discount and payment. When the third client asked for access, it became a product.",
+    "teamTitle": "Who runs the day to day",
+    "timelineTitle": "Timeline",
+    "numbersTitle": "Today in numbers",
+    "valuesTitle": "What we won't give up"
+  },
+  "timeline": {
+    "founded": {
+      "year": "2019",
+      "title": "First internal version",
+      "desc": "A retired spreadsheet and an invoice generator built for our own use."
+    },
+    "firstThousand": {
+      "year": "2021",
+      "title": "A thousand companies invoicing",
+      "desc": "The product leaves the drawer and gains client records, quotes and expenses."
+    },
+    "recurring": {
+      "year": "2023",
+      "title": "Recurring billing",
+      "desc": "Subscriptions, automatic invoice generation and payment reconciliation."
+    },
+    "today": {
+      "year": "Today",
+      "title": "Reports and taxes",
+      "desc": "Simplified income statement, estimated taxes and an export ready for the accountant."
+    }
+  },
+  "values": {
+    "numbers": {
+      "title": "A number that doesn't add up is a bug",
+      "desc": "Total, discount, tax and balance come from a single function — and we test every one of them."
+    },
+    "simple": {
+      "title": "Simple before complete",
+      "desc": "We prefer a screen the client understands alone over a module that needs training."
+    },
+    "support": {
+      "title": "Support from actual people",
+      "desc": "Whoever answers the chat knows the product and has issued invoices in real life."
+    }
+  },
+  "team": {
+    "ana": {
+      "name": "Ana Beatriz Moraes",
+      "role": "Co-founder and product",
+      "bio": "Spent ten years in agency finance before flipping the table and building the tool."
+    },
+    "rafael": {
+      "name": "Rafael Nakamura",
+      "role": "Engineering",
+      "bio": "Looks after the calculation engine and the banking integrations. Hates a wrong rounding."
+    },
+    "juliana": {
+      "name": "Juliana Fontes",
+      "role": "Accounting",
+      "bio": "The accountant behind the tax rules, the reports and the simplified income statement."
+    },
+    "marcos": {
+      "name": "Marcos Vinícius Leal",
+      "role": "Support and onboarding",
+      "bio": "Handles the spreadsheet migration and the first month of every new client."
+    }
+  },
+  "contact": {
+    "eyebrow": "Contact",
+    "title": "Talk to the people who build the product",
+    "subtitle": "We answer within one business day. If it is urgent, the in-app chat is faster.",
+    "channels": {
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "hours": "Office hours",
+      "hoursValue": "Mon to Fri, 9am to 6pm"
+    },
+    "form": {
+      "name": "Name",
+      "email": "Email",
+      "company": "Company",
+      "phone": "Phone",
+      "subject": "Subject",
+      "subjectPlaceholder": "Pick a subject",
+      "message": "Message",
+      "messagePlaceholder": "Tell us what you need to solve in your finance routine.",
+      "submit": "Send message"
+    },
+    "subjects": {
+      "demo": "I want a demo",
+      "support": "Technical support",
+      "billing": "Question about billing",
+      "partnership": "Partnership with an accounting firm"
+    },
+    "success": "Message sent. We'll get back to you shortly.",
+    "mapPlaceholder": "Av. Paulista, 1842 — São Paulo, Brazil"
+  },
+  "dashboard": {
+    "title": "Overview",
+    "subtitle": "This month's cash, what is still open and what is already late.",
+    "kpi": {
+      "receivable": "Receivable",
+      "receivableHint": "{{count}} open invoices",
+      "overdue": "Overdue",
+      "overdueHint": "{{count}} late invoices",
+      "received": "Received this month",
+      "receivedHint": "Payments dated this month",
+      "expenses": "Expenses this month",
+      "expensesHint": "{{count}} entries"
+    },
+    "chart": {
+      "title": "Cash in × cash out",
+      "months": "Last {{count}} months",
+      "revenue": "Cash in",
+      "expenses": "Cash out"
+    },
+    "upcoming": {
+      "title": "Invoices coming due",
+      "empty": "Nothing due in the next 15 days.",
+      "dueIn": "due in {{count}} day(s)"
+    },
+    "overdueList": {
+      "title": "Past due",
+      "empty": "No late invoices.",
+      "daysLate": "{{count}} day(s) late"
+    },
+    "topClients": {
+      "title": "Top clients",
+      "empty": "No invoices issued yet.",
+      "invoices": "{{count}} invoices"
+    },
+    "projected": {
+      "title": "Projected balance",
+      "hint": "Received this month + receivable − this month's expenses"
+    }
+  },
+  "invoices": {
+    "title": "Invoices",
+    "subtitle": "Issue, send, collect and follow the balance of every document.",
+    "new": "New invoice",
+    "number": "Number",
+    "client": "Client",
+    "issuedAt": "Issued",
+    "dueAt": "Due",
+    "total": "Total",
+    "balance": "Balance",
+    "searchPlaceholder": "Number, client or note",
+    "filterStatus": "Status",
+    "filterClient": "Client",
+    "filterFrom": "From",
+    "filterTo": "To",
+    "allStatuses": "All statuses",
+    "allClients": "All clients",
+    "empty": "No invoice found",
+    "emptyDesc": "Adjust the filters or issue the first invoice of the period.",
+    "view": "Open",
+    "markPaid": "Mark as paid",
+    "duplicate": "Duplicate",
+    "send": "Send",
+    "cancelInvoice": "Cancel invoice",
+    "confirmDelete": "Delete this invoice? This cannot be undone.",
+    "sent": "Invoice sent",
+    "duplicated": "Invoice duplicated: {{number}}",
+    "cancelled": "Invoice cancelled",
+    "paid": "Invoice settled",
+    "deleted": "Invoice deleted",
+    "summaryOpen": "Open",
+    "summaryOverdue": "Overdue",
+    "summaryPaid": "Received",
+    "count": "{{count}} invoices in the filter"
+  },
+  "invoiceDetail": {
+    "back": "Back to invoices",
+    "notFound": "Invoice not found",
+    "notFoundDesc": "The document may have been deleted or the link is wrong.",
+    "print": "Print",
+    "registerPayment": "Register payment",
+    "summaryTitle": "Summary",
+    "historyTitle": "Status history",
+    "dueIn": "Due in {{count}} day(s)",
+    "overdueBy": "Overdue by {{count}} day(s)",
+    "paidPercent": "{{count}}% of the total already received",
+    "timeline": {
+      "created": "Invoice created",
+      "sent": "Sent to the client",
+      "payment": "Payment of {{amount}} via {{method}}",
+      "paid": "Settled",
+      "cancelled": "Cancelled",
+      "overdue": "Fell due without payment"
+    }
+  },
+  "quotes": {
+    "title": "Quotes",
+    "subtitle": "Proposal sent, accepted or declined — and the conversion into an invoice in one click.",
+    "new": "New quote",
+    "number": "Number",
+    "validUntil": "Valid until",
+    "accept": "Accept",
+    "reject": "Decline",
+    "convert": "Convert to invoice",
+    "converted": "Invoice {{number}} generated from the quote",
+    "accepted": "Quote accepted",
+    "rejected": "Quote declined",
+    "deleted": "Quote deleted",
+    "confirmDelete": "Delete this quote?",
+    "empty": "No quotes",
+    "emptyDesc": "Create the first proposal for this period.",
+    "summaryOpen": "In negotiation",
+    "summaryAccepted": "Accepted",
+    "summaryValue": "Value in negotiation"
+  },
+  "recurring": {
+    "title": "Recurring",
+    "subtitle": "Active subscriptions, next issue date and the invoices already generated.",
+    "new": "New subscription",
+    "value": "Value per cycle",
+    "cycle": "Cycle",
+    "nextIssue": "Next issue",
+    "active": "Active",
+    "paused": "Paused",
+    "pause": "Pause",
+    "resume": "Resume",
+    "generate": "Generate invoice",
+    "generated": "Invoice {{number}} generated",
+    "generatedInvoices": "Invoices generated",
+    "noGenerated": "No invoice generated yet",
+    "empty": "No subscriptions",
+    "emptyDesc": "Register a recurring contract to automate the billing.",
+    "mrr": "Monthly recurring revenue",
+    "arr": "Annual recurring revenue",
+    "activeCount": "Active subscriptions",
+    "deleted": "Subscription removed",
+    "confirmDelete": "Remove this subscription?"
+  },
+  "clients": {
+    "title": "Clients",
+    "subtitle": "Tax data, default payment term and the statement of each one.",
+    "new": "New client",
+    "name": "Name",
+    "legalName": "Legal name",
+    "taxId": "Tax ID",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "paymentTerm": "Payment term",
+    "days": "days",
+    "notes": "Notes",
+    "statement": "Statement",
+    "billed": "Billed",
+    "received": "Received",
+    "open": "Open",
+    "overdue": "Overdue",
+    "invoiceCount": "{{count}} invoices",
+    "viewStatement": "View statement",
+    "empty": "No clients",
+    "emptyDesc": "Register the first client to start invoicing.",
+    "created": "Client registered",
+    "saved": "Client updated",
+    "deleted": "Client removed",
+    "confirmDelete": "Remove this client? Their invoices stay in the history.",
+    "noInvoices": "This client has no invoices yet."
+  },
+  "expenses": {
+    "title": "Expenses",
+    "subtitle": "Entries by category, with receipt and deductible flag.",
+    "new": "New expense",
+    "date": "Date",
+    "description": "Description",
+    "category": "Category",
+    "supplier": "Supplier",
+    "amount": "Amount",
+    "deductible": "Deductible",
+    "receipt": "Receipt",
+    "noReceipt": "No receipt",
+    "attach": "Receipt file name",
+    "filterCategory": "Category",
+    "allCategories": "All categories",
+    "empty": "No expenses",
+    "emptyDesc": "Log the first outflow of the period.",
+    "created": "Expense logged",
+    "saved": "Expense updated",
+    "deleted": "Expense removed",
+    "confirmDelete": "Remove this expense?",
+    "totalPeriod": "Total for the period",
+    "deductibleTotal": "Deductible",
+    "nonDeductibleTotal": "Non-deductible",
+    "byCategory": "By category"
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Revenue, expenses, result and taxes for the chosen period.",
+    "period": "Period",
+    "last3": "Last 3 months",
+    "last6": "Last 6 months",
+    "last12": "Last 12 months",
+    "revenueByPeriod": "Revenue by period",
+    "revenueByClient": "Revenue by client",
+    "revenueByService": "Revenue by service",
+    "expensesByCategory": "Expenses by category",
+    "incomeStatement": "Simplified income statement",
+    "taxes": "Estimated taxes",
+    "share": "Share",
+    "quantity": "Qty",
+    "empty": "No data in the selected period.",
+    "dre": {
+      "revenue": "Gross revenue billed",
+      "taxes": "(−) Taxes charged",
+      "grossProfit": "(=) Net revenue",
+      "deductible": "(−) Deductible expenses",
+      "nonDeductible": "(−) Non-deductible expenses",
+      "totalExpenses": "(=) Total expenses",
+      "netProfit": "(=) Result for the period",
+      "margin": "Net margin"
+    },
+    "tax": {
+      "base": "Tax base (revenue)",
+      "itemTaxes": "Taxes charged on the items",
+      "simples": "Simplified regime provision",
+      "rate": "Provision rate",
+      "total": "Total to set aside",
+      "note": "Planning estimate; confirm the effective rate with your accountant."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Profile, company data, numbering, default taxes and preferences.",
+    "saved": "Preference saved",
+    "tabs": {
+      "profile": "Profile",
+      "company": "Company",
+      "numbering": "Numbering",
+      "defaults": "Defaults",
+      "preferences": "Preferences"
+    },
+    "profile": {
+      "title": "Your data",
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "saved": "Profile updated"
+    },
+    "company": {
+      "title": "Issuing company data",
+      "name": "Trade name",
+      "legalName": "Legal name",
+      "taxId": "Tax ID",
+      "address": "Address",
+      "email": "Email",
+      "phone": "Phone",
+      "logoText": "Logo initials",
+      "saved": "Company data updated"
+    },
+    "numbering": {
+      "title": "Invoice numbering",
+      "prefix": "Prefix",
+      "nextNumber": "Next number",
+      "preview": "The next invoice will be issued as",
+      "hint": "The number is the prefix plus four digits and moves forward on every issue.",
+      "saved": "Numbering updated"
+    },
+    "defaults": {
+      "title": "Default taxes and terms",
+      "taxRate": "Default item tax rate (%)",
+      "termDays": "Default payment term (days)",
+      "hint": "Used when creating a new item and when calculating the invoice due date.",
+      "saved": "Defaults updated"
+    },
+    "preferences": {
+      "title": "Appearance and data",
+      "darkMode": "Dark theme",
+      "darkModeDesc": "Switches the dashboard between light and dark.",
+      "language": "Language",
+      "languageDesc": "Applies to text, currency and date format.",
+      "resetData": "Restore demo data",
+      "resetDataDesc": "Brings clients, invoices, quotes and expenses back to the original state.",
+      "resetButton": "Restore",
+      "resetDone": "Demo data restored"
+    }
+  },
+  "notFound": {
+    "title": "Page not found",
+    "desc": "The address doesn't exist or the document was removed.",
+    "back": "Back to the dashboard",
+    "home": "Go to the home page"
+  },
+  "cookie": {
+    "title": "Cookies",
+    "desc": "We use cookies to keep you signed in and to measure how the dashboard is used.",
+    "policy": "Privacy policy",
+    "accept": "Accept",
+    "decline": "Decline"
+  }
+}

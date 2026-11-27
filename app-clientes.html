@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <title>Clientes — Conta Certa</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css" />
+  <script src="assets/js/state.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/format.js"></script>
+  <script src="assets/js/query.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/iv.js"></script>
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/i18n.js"></script>
+</head>
+<body data-shell="app" data-guard="true">
+  <div id="app"><div id="page"></div></div>
+
+  <script>
+    const MODAL_ID = 'client-modal';
+    const DRAWER_ID = 'client-statement';
+
+    const EMPTY = {
+      id: null, name: '', legalName: '', taxId: '', email: '', phone: '', address: '', paymentTermDays: 15, notes: '',
+    };
+
+    let search = '';
+    let draft = null;
+    let statementId = null;
+
+    /**
+     * Repinta só a tabela. A barra de filtros fica de fora de propósito: assim o
+     * campo de busca nunca é recriado e o cursor não pula.
+     */
+    function renderResults() {
+      const t = UI.t, icon = UI.icon, esc = UI.esc;
+      const st = IV.get();
+      const now = new Date();
+
+      const term = search.trim().toLowerCase();
+      const rows = !term
+        ? st.clients
+        : st.clients.filter((c) => (c.name + ' ' + c.legalName + ' ' + c.taxId + ' ' + c.email).toLowerCase().indexOf(term) !== -1);
+
+      const iconBtn = 'flex h-8 w-8 items-center justify-center rounded-lg border border-themed text-muted transition hover:text-brand-600';
+
+      document.getElementById('results').innerHTML = rows.length === 0
+        ? '<div class="surface-card rounded-2xl border">' + UI.emptyState({ icon: 'users', title: t('clients.empty'), description: t('clients.emptyDesc') }) + '</div>'
+        : '<div class="surface-card overflow-hidden rounded-2xl border"><div class="overflow-x-auto">' +
+          '<table class="w-full min-w-[880px] text-sm"><thead>' +
+          '<tr class="border-b border-themed text-left text-xs uppercase tracking-wider text-muted">' +
+          '<th class="px-5 py-3 font-medium">' + t('clients.name') + '</th>' +
+          '<th class="px-5 py-3 font-medium">' + t('clients.taxId') + '</th>' +
+          '<th class="px-5 py-3 font-medium">' + t('clients.email') + '</th>' +
+          '<th class="px-5 py-3 font-medium">' + t('clients.paymentTerm') + '</th>' +
+          '<th class="px-5 py-3 text-right font-medium">' + t('clients.open') + '</th>' +
+          '<th class="px-5 py-3 text-right font-medium">' + t('common.actions') + '</th>' +
+          '</tr></thead><tbody class="divide-y divide-[color:var(--tx-border)]">' +
+          rows.map((client) => {
+            const summary = Query.clientStatement(st.invoices, client.id, now);
+            return '<tr class="hover:bg-gray-50 dark:hover:bg-white/5">' +
+              '<td class="px-5 py-3">' +
+              '<button type="button" data-statement="' + client.id + '" class="text-left font-medium text-heading hover:text-brand-600">' + esc(client.name) + '</button>' +
+              '<p class="text-xs text-muted">' + esc(client.legalName) + '</p></td>' +
+              '<td class="px-5 py-3 text-muted">' + esc(client.taxId) + '</td>' +
+              '<td class="px-5 py-3 text-muted">' + esc(client.email) + '</td>' +
+              '<td class="px-5 py-3 text-muted">' + client.paymentTermDays + ' ' + t('clients.days') + '</td>' +
+              '<td class="px-5 py-3 text-right"><span class="' + (summary.overdue > 0 ? 'font-medium text-error-500' : 'text-heading') + '">' +
+              UI.fmt(summary.open) + '</span></td>' +
+              '<td class="px-5 py-3"><div class="flex items-center justify-end gap-1.5">' +
+              '<button type="button" data-statement="' + client.id + '" class="' + iconBtn + '" title="' + esc(t('clients.viewStatement')) + '">' + icon('list', { size: 15 }) + '</button>' +
+              '<button type="button" data-edit="' + client.id + '" class="' + iconBtn + '" title="' + esc(t('common.edit')) + '">' + icon('edit', { size: 15 }) + '</button>' +
+              '<button type="button" data-delete="' + client.id + '" class="' + iconBtn + ' hover:text-error-500" title="' + esc(t('common.remove')) + '">' + icon('trash', { size: 15 }) + '</button>' +
+              '</div></td></tr>';
+          }).join('') +
+          '</tbody></table></div></div>';
+
+      const on = (sel, fn) => document.querySelectorAll(sel).forEach((el) => el.addEventListener('click', () => fn(el)));
+      on('[data-edit]', (el) => { draft = Object.assign({}, IV.clientById(Number(el.getAttribute('data-edit')))); window.renderPage(); });
+      on('[data-delete]', (el) => {
+        if (!window.confirm(t('clients.confirmDelete'))) return;
+        IV.removeClient(Number(el.getAttribute('data-delete')));
+        UI.notify(t('clients.deleted'), 'success');
+        renderResults();
+      });
+      on('[data-statement]', (el) => { statementId = Number(el.getAttribute('data-statement')); window.renderPage(); });
+    }
+
+    function save() {
+      if (!draft || !draft.name.trim()) return;
+      const data = Object.assign({}, draft);
+      const id = data.id;
+      delete data.id;
+      if (id) {
+        IV.updateClient(id, data);
+        UI.notify(UI.t('clients.saved'), 'success');
+      } else {
+        IV.addClient(data);
+        UI.notify(UI.t('clients.created'), 'success');
+      }
+      draft = null;
+      window.renderPage();
+    }
+
+    window.renderPage = function () {
+      const t = UI.t, icon = UI.icon, esc = UI.esc;
+      const st = IV.get();
+      const now = new Date();
+
+      const control = 'h-11 w-full rounded-lg border border-themed bg-transparent px-3 text-sm text-body focus-ring';
+      const field = (key, label, attrs, placeholder, wide) =>
+        '<div ' + (wide ? 'class="sm:col-span-2"' : '') + '><label class="mb-1.5 block text-sm font-medium text-heading">' + label + '</label>' +
+        '<input data-draft="' + key + '" value="' + esc(draft ? draft[key] : '') + '" ' + (attrs || '') +
+        ' placeholder="' + esc(placeholder || '') + '" class="' + control + '"/></div>';
+
+      const modalBody = draft
+        ? '<div class="grid gap-4 sm:grid-cols-2">' +
+          field('name', t('clients.name')) +
+          field('legalName', t('clients.legalName')) +
+          field('taxId', t('clients.taxId'), '', '00.000.000/0001-00') +
+          field('paymentTermDays', t('clients.paymentTerm') + ' (' + t('clients.days') + ')', 'type="number" min="0" max="180"') +
+          field('email', t('clients.email'), 'type="email"') +
+          field('phone', t('clients.phone')) +
+          field('address', t('clients.address'), '', '', true) +
+          '<div class="sm:col-span-2"><label class="mb-1.5 block text-sm font-medium text-heading">' + t('clients.notes') + '</label>' +
+          '<textarea rows="3" data-draft="notes" class="w-full rounded-lg border border-themed bg-transparent px-3 py-2 text-sm text-body focus-ring">' + esc(draft.notes) + '</textarea></div>' +
+          '</div>'
+        : '';
+
+      const modalFooter =
+        '<button type="button" data-draft-cancel class="h-10 rounded-lg border border-themed px-4 text-sm font-medium text-body transition hover:bg-gray-50 dark:hover:bg-gray-800">' + t('common.cancel') + '</button>' +
+        '<button type="button" data-draft-save class="h-10 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">' + t('common.save') + '</button>';
+
+      const statementClient = statementId != null ? IV.clientById(statementId) : null;
+      const statement = statementId != null ? Query.clientStatement(st.invoices, statementId, now) : null;
+
+      const statementBody = statement && statementClient
+        ? '<div class="space-y-6">' +
+          '<dl class="grid grid-cols-2 gap-3 text-sm">' +
+          [
+            { label: t('clients.billed'), value: statement.billed, tone: 'text-heading' },
+            { label: t('clients.received'), value: statement.received, tone: 'text-success-600' },
+            { label: t('clients.open'), value: statement.open, tone: 'text-brand-600' },
+            { label: t('clients.overdue'), value: statement.overdue, tone: 'text-error-500' },
+          ].map((row) =>
+            '<div class="rounded-xl border border-themed p-3"><dt class="text-xs text-muted">' + row.label + '</dt>' +
+            '<dd class="mt-1 font-semibold ' + row.tone + '">' + UI.fmt(row.value) + '</dd></div>'
+          ).join('') + '</dl>' +
+          '<div class="rounded-xl border border-themed p-4 text-xs text-muted">' +
+          '<p>' + t('clients.taxId') + ': ' + esc(statementClient.taxId) + '</p>' +
+          '<p class="mt-1">' + esc(statementClient.address) + '</p>' +
+          '<p class="mt-1">' + esc(statementClient.email) + ' · ' + esc(statementClient.phone) + '</p>' +
+          '<p class="mt-1">' + t('clients.paymentTerm') + ': ' + statementClient.paymentTermDays + ' ' + t('clients.days') + '</p>' +
+          (statementClient.notes ? '<p class="mt-2 italic">' + esc(statementClient.notes) + '</p>' : '') +
+          '</div>' +
+          '<div><div class="flex items-baseline justify-between gap-3">' +
+          '<h3 class="text-sm font-semibold text-heading">' + t('clients.statement') + '</h3>' +
+          '<span class="text-xs text-muted">' + t('clients.invoiceCount', { count: statement.invoices.length }) + '</span></div>' +
+          (statement.invoices.length === 0
+            ? '<p class="mt-3 text-sm text-muted">' + t('clients.noInvoices') + '</p>'
+            : '<ul class="mt-3 divide-y divide-[color:var(--tx-border)]">' + statement.invoices.map((inv) =>
+                '<li class="flex items-center justify-between gap-3 py-3"><div class="min-w-0">' +
+                '<a href="app-fatura.html?id=' + inv.id + '" class="text-sm font-medium text-heading hover:text-brand-600">' + esc(inv.number) + '</a>' +
+                '<p class="text-xs text-muted">' + UI.fmtDate(inv.issuedAt) + '</p></div>' +
+                '<div class="flex shrink-0 items-center gap-3">' + UI.invoicePill(Query.effectiveStatus(inv, now)) +
+                '<div class="text-right"><p class="text-sm font-medium text-heading">' + UI.fmt(Query.invoiceTotal(inv)) + '</p>' +
+                (Query.invoiceBalance(inv) > 0 && inv.status === 'enviada'
+                  ? '<p class="text-xs text-muted">' + UI.fmt(Query.invoiceBalance(inv)) + '</p>'
+                  : '') + '</div></div></li>'
+              ).join('') + '</ul>') +
+          '</div></div>'
+        : '';
+
+      document.getElementById('page').innerHTML =
+        UI.pageHeader({
+          title: t('clients.title'),
+          subtitle: t('clients.subtitle'),
+          crumbs: [{ label: t('appNav.dashboard'), href: 'app.html', icon: 'dashboard' }, { label: t('clients.title') }],
+          action: '<button type="button" data-new class="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">' +
+            icon('plus', { size: 16 }) + t('clients.new') + '</button>',
+        }) +
+        UI.filterBar({ search: search, placeholder: t('common.search') }) +
+        '<div id="results"></div>' +
+        UI.modal(MODAL_ID, {
+          size: 'lg',
+          title: draft && draft.id ? t('common.edit') : t('clients.new'),
+          body: modalBody,
+          footer: modalFooter,
+        }) +
+        UI.drawer(DRAWER_ID, {
+          width: 'max-w-lg',
+          title: statementClient ? esc(statementClient.name) : '',
+          subtitle: statementClient ? esc(statementClient.legalName) : '',
+          body: statementBody,
+        });
+
+      const searchEl = document.querySelector('[data-filter-search]');
+      if (searchEl) searchEl.addEventListener('input', () => { search = searchEl.value; renderResults(); });
+
+      document.querySelectorAll('[data-new]').forEach((el) =>
+        el.addEventListener('click', () => { draft = Object.assign({}, EMPTY); window.renderPage(); })
+      );
+
+      renderResults();
+
+      if (draft) {
+        UI.openModal(MODAL_ID);
+        const root = document.getElementById(MODAL_ID);
+        root.querySelectorAll('[data-draft]').forEach((el) =>
+          el.addEventListener('input', () => {
+            const key = el.getAttribute('data-draft');
+            draft[key] = key === 'paymentTermDays' ? Math.max(0, Number(el.value) || 0) : el.value;
+          })
+        );
+        root.querySelectorAll('[data-modal-close], [data-draft-cancel]').forEach((el) =>
+          el.addEventListener('click', () => { draft = null; window.renderPage(); })
+        );
+        root.querySelector('[data-draft-save]').addEventListener('click', save);
+      } else {
+        UI.closeModal(MODAL_ID);
+      }
+
+      if (statementClient) {
+        UI.openDrawer(DRAWER_ID);
+        document.querySelectorAll('#' + DRAWER_ID + ' [data-drawer-close]').forEach((el) =>
+          el.addEventListener('click', () => { statementId = null; window.renderPage(); })
+        );
+      } else {
+        UI.closeDrawer(DRAWER_ID);
+      }
+    };
+  </script>
+  <script src="assets/js/layout.js"></script>
+</body>
+</html>

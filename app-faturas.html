@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <title>Faturas — Conta Certa</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css" />
+  <script src="assets/js/state.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/format.js"></script>
+  <script src="assets/js/query.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/iv.js"></script>
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/i18n.js"></script>
+</head>
+<body data-shell="app" data-guard="true">
+  <div id="app"><div id="page"></div></div>
+
+  <script>
+    const STATUSES = ['rascunho', 'enviada', 'paga', 'vencida', 'cancelada'];
+    const PAGE_SIZE = 10;
+
+    const filter = { search: '', status: 'todas', clientId: 'todos', from: '', to: '' };
+    let page = 1;
+    let payTargetId = null;
+
+    /** Linhas filtradas + ordenadas (mais recente primeiro). */
+    function visibleRows() {
+      const st = IV.get();
+      const now = new Date();
+      return Query.filterInvoices(
+        st.invoices,
+        st.clients,
+        {
+          search: filter.search,
+          status: filter.status,
+          clientId: filter.clientId === 'todos' ? 'todos' : Number(filter.clientId),
+          from: filter.from ? filter.from + 'T00:00:00' : undefined,
+          to: filter.to ? filter.to + 'T23:59:59' : undefined,
+        },
+        now
+      ).sort((a, b) => new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime());
+    }
+
+    /**
+     * Repinta só o resumo, os chips e a tabela. A barra de filtros fica de fora
+     * de propósito: assim o campo de busca nunca é recriado e o cursor não pula.
+     */
+    function renderResults() {
+      const t = UI.t, icon = UI.icon, esc = UI.esc;
+      const st = IV.get();
+      const now = new Date();
+      const counts = Query.invoiceStatusCounts(st.invoices, now);
+      const rows = visibleRows();
+
+      const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+      const current = Math.min(page, totalPages);
+      const pageRows = rows.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+      const summaryPaid = Query.round2(rows.reduce((sum, inv) => sum + Query.invoicePaid(inv), 0));
+
+      document.getElementById('summary').innerHTML =
+        UI.summaryCard({ label: t('invoices.summaryOpen'), value: UI.fmt(Query.receivable(rows)), icon: 'receipt', accent: 'text-brand-500' }) +
+        UI.summaryCard({ label: t('invoices.summaryOverdue'), value: UI.fmt(Query.overdueTotal(rows, now)), icon: 'alert-triangle', accent: 'text-error-500' }) +
+        UI.summaryCard({ label: t('invoices.summaryPaid'), value: UI.fmt(summaryPaid), icon: 'check-circle', accent: 'text-success-600' });
+
+      const chipCls = (active) =>
+        'rounded-full border px-3 py-1.5 text-xs font-medium transition ' +
+        (active ? 'border-brand-500 bg-brand-500 text-white' : 'border-themed text-muted hover:text-heading');
+
+      document.getElementById('chips').innerHTML =
+        '<button type="button" data-status="todas" class="' + chipCls(filter.status === 'todas') + '">' +
+        t('invoices.allStatuses') + ' · ' + st.invoices.length + '</button>' +
+        STATUSES.map((s) =>
+          '<button type="button" data-status="' + s + '" class="' + chipCls(filter.status === s) + '">' +
+          t('invoiceStatuses.' + s) + ' · ' + counts[s] + '</button>'
+        ).join('');
+
+      const iconBtn = 'flex h-8 w-8 items-center justify-center rounded-lg border border-themed text-muted transition hover:text-brand-600';
+
+      function actions(inv) {
+        let out = '<a href="app-fatura.html?id=' + inv.id + '" class="' + iconBtn + '" title="' + esc(t('invoices.view')) + '">' + icon('eye', { size: 15 }) + '</a>';
+        if (inv.status === 'rascunho')
+          out += '<button type="button" data-send="' + inv.id + '" class="' + iconBtn + '" title="' + esc(t('invoices.send')) + '">' + icon('mail', { size: 15 }) + '</button>';
+        if (inv.status === 'enviada')
+          out += '<button type="button" data-pay="' + inv.id + '" class="' + iconBtn + '" title="' + esc(t('invoiceDetail.registerPayment')) + '">' + icon('banknote', { size: 15 }) + '</button>' +
+                 '<button type="button" data-markpaid="' + inv.id + '" class="' + iconBtn + '" title="' + esc(t('invoices.markPaid')) + '">' + icon('check-circle', { size: 15 }) + '</button>';
+        if (inv.status === 'rascunho')
+          out += '<button type="button" data-edit="' + inv.id + '" class="' + iconBtn + '" title="' + esc(t('common.edit')) + '">' + icon('edit', { size: 15 }) + '</button>';
+        out += '<button type="button" data-duplicate="' + inv.id + '" class="' + iconBtn + '" title="' + esc(t('invoices.duplicate')) + '">' + icon('copy', { size: 15 }) + '</button>';
+        if (inv.status !== 'cancelada' && inv.status !== 'paga')
+          out += '<button type="button" data-cancel="' + inv.id + '" class="' + iconBtn + ' hover:text-error-500" title="' + esc(t('invoices.cancelInvoice')) + '">' + icon('x', { size: 15 }) + '</button>';
+        if (inv.status === 'rascunho')
+          out += '<button type="button" data-delete="' + inv.id + '" class="' + iconBtn + ' hover:text-error-500" title="' + esc(t('common.delete')) + '">' + icon('trash', { size: 15 }) + '</button>';
+        return out;
+      }
+
+      document.getElementById('results').innerHTML = rows.length === 0
+        ? '<div class="surface-card rounded-2xl border">' + UI.emptyState({
+            icon: 'receipt',
+            title: t('invoices.empty'),
+            description: t('invoices.emptyDesc'),
+            action: '<button type="button" data-new class="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">' +
+              icon('plus', { size: 16 }) + t('invoices.new') + '</button>',
+          }) + '</div>'
+        : '<div class="surface-card overflow-hidden rounded-2xl border"><div class="overflow-x-auto">' +
+          '<table class="w-full min-w-[920px] text-sm"><thead>' +
+          '<tr class="border-b border-themed text-left text-xs uppercase tracking-wider text-muted">' +
+          '<th class="px-5 py-3 font-medium">' + t('invoices.number') + '</th>' +
+          '<th class="px-5 py-3 font-medium">' + t('invoices.client') + '</th>' +
+          '<th class="px-5 py-3 font-medium">' + t('invoices.issuedAt') + '</th>' +
+          '<th class="px-5 py-3 font-medium">' + t('invoices.dueAt') + '</th>' +
+          '<th class="px-5 py-3 font-medium">' + t('common.status') + '</th>' +
+          '<th class="px-5 py-3 text-right font-medium">' + t('invoices.total') + '</th>' +
+          '<th class="px-5 py-3 text-right font-medium">' + t('invoices.balance') + '</th>' +
+          '<th class="px-5 py-3 text-right font-medium">' + t('common.actions') + '</th>' +
+          '</tr></thead><tbody class="divide-y divide-[color:var(--tx-border)]">' +
+          pageRows.map((inv) => {
+            const stt = Query.effectiveStatus(inv, now);
+            const balance = Query.invoiceBalance(inv);
+            return '<tr class="hover:bg-gray-50 dark:hover:bg-white/5">' +
+              '<td class="px-5 py-3"><a href="app-fatura.html?id=' + inv.id + '" class="font-medium text-heading hover:text-brand-600">' + esc(inv.number) + '</a></td>' +
+              '<td class="px-5 py-3 text-body">' + esc(IV.clientName(inv.clientId)) + '</td>' +
+              '<td class="px-5 py-3 text-muted">' + UI.fmtDate(inv.issuedAt) + '</td>' +
+              '<td class="px-5 py-3 ' + (Query.isOverdue(inv, now) ? 'font-medium text-error-500' : 'text-muted') + '">' + UI.fmtDate(inv.dueAt) + '</td>' +
+              '<td class="px-5 py-3">' + UI.invoicePill(stt) + '</td>' +
+              '<td class="px-5 py-3 text-right font-medium text-heading">' + UI.fmt(Query.invoiceTotal(inv)) + '</td>' +
+              '<td class="px-5 py-3 text-right"><span class="' + (balance > 0 ? 'font-medium text-heading' : 'text-muted') + '">' + UI.fmt(balance) + '</span>' +
+              (inv.payments.length > 0 && balance > 0
+                ? '<p class="text-xs text-warning-600 dark:text-warning-500">' + UI.fmt(Query.invoicePaid(inv)) + ' ' + t('document.paid').toLowerCase() + '</p>'
+                : '') + '</td>' +
+              '<td class="px-5 py-3"><div class="flex items-center justify-end gap-1.5">' + actions(inv) + '</div></td></tr>';
+          }).join('') +
+          '</tbody></table></div>' +
+          '<div class="flex items-center justify-between gap-3 border-t border-themed px-5 py-3 text-xs text-muted">' +
+          '<span>' + t('invoices.count', { count: rows.length }) + '</span></div></div>' +
+          '<div class="mt-6">' + UI.pageNav(current, totalPages) + '</div>';
+
+      wireResults();
+    }
+
+    /** Liga o que é recriado a cada `renderResults`. */
+    function wireResults() {
+      const t = UI.t;
+      const on = (sel, fn) => document.querySelectorAll(sel).forEach((el) => el.addEventListener('click', () => fn(el)));
+
+      on('[data-status]', (el) => { filter.status = el.getAttribute('data-status'); page = 1; renderResults(); });
+      on('[data-page]', (el) => { page = Number(el.getAttribute('data-page')); renderResults(); });
+      on('[data-new]', () => { IV.Editor.startInvoice(IV.get().company); window.renderPage(); });
+      on('[data-send]', (el) => { IV.sendInvoice(Number(el.getAttribute('data-send'))); UI.notify(t('invoices.sent'), 'success'); renderResults(); });
+      on('[data-markpaid]', (el) => { IV.markPaid(Number(el.getAttribute('data-markpaid'))); UI.notify(t('invoices.paid'), 'success'); renderResults(); });
+      on('[data-edit]', (el) => { IV.Editor.editInvoice(IV.invoiceById(Number(el.getAttribute('data-edit')))); window.renderPage(); });
+      on('[data-duplicate]', (el) => {
+        const copy = IV.duplicateInvoice(Number(el.getAttribute('data-duplicate')));
+        if (copy) UI.notify(t('invoices.duplicated', { number: copy.number }), 'success');
+        renderResults();
+      });
+      on('[data-cancel]', (el) => { IV.cancelInvoice(Number(el.getAttribute('data-cancel'))); UI.notify(t('invoices.cancelled'), 'success'); renderResults(); });
+      on('[data-delete]', (el) => {
+        if (!window.confirm(t('invoices.confirmDelete'))) return;
+        IV.removeInvoice(Number(el.getAttribute('data-delete')));
+        UI.notify(t('invoices.deleted'), 'success');
+        renderResults();
+      });
+      on('[data-pay]', (el) => { payTargetId = Number(el.getAttribute('data-pay')); window.renderPage(); });
+    }
+
+    window.renderPage = function () {
+      const t = UI.t, icon = UI.icon, esc = UI.esc;
+      const st = IV.get();
+
+      const dateInput = 'focus-ring rounded-lg border border-themed bg-transparent px-3 py-2 text-sm text-body';
+      const controls =
+        UI.filterSelect(t('invoices.filterClient'), 'data-filter-client',
+          '<option value="todos">' + t('invoices.allClients') + '</option>' +
+          st.clients.map((c) => '<option value="' + c.id + '" ' + (String(filter.clientId) === String(c.id) ? 'selected' : '') + '>' + esc(c.name) + '</option>').join('')) +
+        '<label class="flex items-center gap-2 text-sm text-muted"><span>' + t('invoices.filterFrom') + '</span>' +
+        '<input type="date" data-filter-from value="' + filter.from + '" class="' + dateInput + '"/></label>' +
+        '<label class="flex items-center gap-2 text-sm text-muted"><span>' + t('invoices.filterTo') + '</span>' +
+        '<input type="date" data-filter-to value="' + filter.to + '" class="' + dateInput + '"/></label>';
+
+      const payTarget = payTargetId != null ? IV.invoiceById(payTargetId) : null;
+
+      document.getElementById('page').innerHTML =
+        UI.pageHeader({
+          title: t('invoices.title'),
+          subtitle: t('invoices.subtitle'),
+          crumbs: [{ label: t('appNav.dashboard'), href: 'app.html', icon: 'dashboard' }, { label: t('invoices.title') }],
+          action: '<button type="button" data-new class="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">' +
+            icon('plus', { size: 16 }) + t('invoices.new') + '</button>',
+        }) +
+        '<div id="summary" class="mb-5 grid gap-4 sm:grid-cols-3"></div>' +
+        '<div id="chips" class="mb-4 flex flex-wrap gap-2"></div>' +
+        UI.filterBar({ search: filter.search, placeholder: t('invoices.searchPlaceholder'), controls: controls }) +
+        '<div id="results"></div>' +
+        UI.documentEditorModal() +
+        UI.paymentModal(payTarget);
+
+      // ── Filtros (ficam vivos entre repinturas do resultado) ──
+      const searchEl = document.querySelector('[data-filter-search]');
+      if (searchEl) searchEl.addEventListener('input', () => { filter.search = searchEl.value; page = 1; renderResults(); });
+      const clientEl = document.querySelector('[data-filter-client]');
+      if (clientEl) clientEl.addEventListener('change', () => { filter.clientId = clientEl.value; page = 1; renderResults(); });
+      const fromEl = document.querySelector('[data-filter-from]');
+      if (fromEl) fromEl.addEventListener('change', () => { filter.from = fromEl.value; page = 1; renderResults(); });
+      const toEl = document.querySelector('[data-filter-to]');
+      if (toEl) toEl.addEventListener('change', () => { filter.to = toEl.value; page = 1; renderResults(); });
+
+      renderResults();
+
+      // ── Modais ──
+      UI.wireDocumentEditor();
+      UI.wirePaymentModal(
+        payTarget,
+        (data) => { IV.registerPayment(payTarget.id, data); UI.notify(t('payments.registered'), 'success'); },
+        () => { payTargetId = null; window.renderPage(); }
+      );
+    };
+  </script>
+  <script src="assets/js/layout.js"></script>
+</body>
+</html>

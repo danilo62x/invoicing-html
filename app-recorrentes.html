@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <title>Recorrentes — Conta Certa</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css" />
+  <script src="assets/js/state.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/format.js"></script>
+  <script src="assets/js/query.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/iv.js"></script>
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/i18n.js"></script>
+</head>
+<body data-shell="app" data-guard="true">
+  <div id="app"><div id="page"></div></div>
+
+  <script>
+    const CYCLES = ['mensal', 'trimestral', 'semestral', 'anual'];
+    const MODAL_ID = 'recurring-modal';
+
+    let draft = null;
+
+    function openNew() {
+      const next = new Date();
+      next.setMonth(next.getMonth() + 1);
+      const st = IV.get();
+      draft = {
+        id: null,
+        clientId: st.clients.length ? st.clients[0].id : 0,
+        cycle: 'mensal',
+        nextIssueAt: next.toISOString().slice(0, 10),
+        active: true,
+        items: [{ description: '', quantity: 1, unitPrice: 0, taxRate: st.company.defaultTaxRate }],
+        discount: 0,
+        discountKind: 'valor',
+      };
+      window.renderPage();
+    }
+
+    function openEdit(row) {
+      draft = {
+        id: row.id,
+        clientId: row.clientId,
+        cycle: row.cycle,
+        nextIssueAt: row.nextIssueAt.slice(0, 10),
+        active: row.active,
+        items: row.items.map((it) => Object.assign({}, it)),
+        discount: 0,
+        discountKind: 'valor',
+      };
+      window.renderPage();
+    }
+
+    function save() {
+      if (!draft) return;
+      const payload = {
+        clientId: draft.clientId,
+        cycle: draft.cycle,
+        nextIssueAt: new Date(draft.nextIssueAt + 'T12:00:00').toISOString(),
+        active: draft.active,
+        items: draft.items,
+      };
+      if (draft.id) IV.updateRecurring(draft.id, payload);
+      else IV.addRecurring(payload);
+      UI.notify(UI.t('settings.saved'), 'success');
+      draft = null;
+      window.renderPage();
+    }
+
+    window.renderPage = function () {
+      const t = UI.t, icon = UI.icon, esc = UI.esc;
+      const st = IV.get();
+
+      const activeRows = st.recurrings.filter((r) => r.active);
+      const mrr = Query.round2(activeRows.reduce((sum, r) => sum + Query.monthlyRecurringRevenue(r.items, r.cycle), 0));
+      const arr = Query.round2(activeRows.reduce((sum, r) => sum + Query.recurringAnnualValue(r.items, r.cycle), 0));
+
+      const kpis =
+        '<div class="grid gap-4 sm:grid-cols-3">' +
+        UI.kpiCard({ title: t('recurring.mrr'), value: UI.fmt(mrr), icon: 'refresh-cw', accent: 'brand' }) +
+        UI.kpiCard({ title: t('recurring.arr'), value: UI.fmt(arr), icon: 'trending-up', accent: 'success' }) +
+        UI.kpiCard({ title: t('recurring.activeCount'), value: activeRows.length, icon: 'check-circle', accent: 'info' }) +
+        '</div>';
+
+      const smallBtn = 'inline-flex h-9 items-center gap-2 rounded-lg border border-themed px-3 text-sm font-medium text-body transition hover:bg-gray-50 dark:hover:bg-gray-800';
+
+      const cards = st.recurrings.length === 0
+        ? '<div class="surface-card mt-6 rounded-2xl border">' + UI.emptyState({
+            icon: 'refresh-cw',
+            title: t('recurring.empty'),
+            description: t('recurring.emptyDesc'),
+            action: '<button type="button" data-new class="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">' +
+              icon('plus', { size: 16 }) + t('recurring.new') + '</button>',
+          }) + '</div>'
+        : '<div class="mt-6 grid gap-6 lg:grid-cols-2">' + st.recurrings.map((row) => {
+            const perCycle = Query.invoiceTotal({ items: row.items, discount: 0, discountKind: 'valor' });
+            const generated = st.invoices.filter((inv) => row.generatedInvoiceIds.indexOf(inv.id) !== -1);
+            return '<div class="surface-card rounded-2xl border p-5 md:p-6">' +
+              '<div class="flex flex-wrap items-start justify-between gap-3"><div>' +
+              '<h2 class="text-base font-semibold text-heading">' + esc(IV.clientName(row.clientId)) + '</h2>' +
+              '<div class="mt-2 flex flex-wrap items-center gap-2">' + UI.cyclePill(row.cycle) + UI.activePill(row.active) + '</div></div>' +
+              '<span title="' + esc(t(row.active ? 'recurring.pause' : 'recurring.resume')) + '">' +
+              UI.switchToggle(row.active, 'data-toggle-active="' + row.id + '"') + '</span></div>' +
+              '<dl class="mt-5 grid grid-cols-2 gap-4 text-sm">' +
+              '<div><dt class="text-xs text-muted">' + t('recurring.value') + '</dt>' +
+              '<dd class="mt-1 font-semibold text-heading">' + UI.fmt(perCycle) + '</dd></div>' +
+              '<div><dt class="text-xs text-muted">' + t('recurring.nextIssue') + '</dt>' +
+              '<dd class="mt-1 font-semibold text-heading">' + UI.fmtDate(row.nextIssueAt) + '</dd></div></dl>' +
+              '<ul class="mt-4 space-y-1.5 border-t border-themed pt-4 text-sm text-muted">' +
+              row.items.map((item) =>
+                '<li class="flex justify-between gap-3"><span class="truncate">' + item.quantity + '× ' + esc(item.description) + '</span>' +
+                '<span class="shrink-0">' + item.taxRate + '%</span></li>'
+              ).join('') + '</ul>' +
+              '<div class="mt-4 border-t border-themed pt-4">' +
+              '<p class="text-xs font-medium text-muted">' + t('recurring.generatedInvoices') + '</p>' +
+              (generated.length === 0
+                ? '<p class="mt-2 text-xs text-muted">' + t('recurring.noGenerated') + '</p>'
+                : '<div class="mt-2 flex flex-wrap gap-2">' + generated.map((inv) =>
+                    '<a href="app-fatura.html?id=' + inv.id + '" class="rounded-full border border-themed px-2.5 py-1 text-xs font-medium text-muted transition hover:text-brand-600">' +
+                    esc(inv.number) + '</a>'
+                  ).join('') + '</div>') +
+              '</div>' +
+              '<div class="mt-5 flex flex-wrap gap-2">' +
+              '<button type="button" data-generate="' + row.id + '" class="' + smallBtn + '">' + icon('receipt', { size: 15 }) + t('recurring.generate') + '</button>' +
+              '<button type="button" data-edit="' + row.id + '" class="' + smallBtn + '">' + icon('edit', { size: 15 }) + t('common.edit') + '</button>' +
+              '<button type="button" data-delete="' + row.id + '" class="' + smallBtn + ' hover:text-error-500">' + icon('trash', { size: 15 }) + t('common.remove') + '</button>' +
+              '</div></div>';
+          }).join('') + '</div>';
+
+      const control = 'h-11 w-full rounded-lg border border-themed bg-transparent px-3 text-sm text-body focus-ring';
+
+      const modalBody = draft
+        ? '<div class="space-y-5">' +
+          '<div class="grid gap-4 sm:grid-cols-3">' +
+          '<div><label class="mb-1.5 block text-sm font-medium text-heading">' + t('editor.client') + '</label>' +
+          '<select data-draft-client class="' + control + '">' +
+          st.clients.map((c) => '<option value="' + c.id + '" ' + (c.id === draft.clientId ? 'selected' : '') + '>' + esc(c.name) + '</option>').join('') +
+          '</select></div>' +
+          '<div><label class="mb-1.5 block text-sm font-medium text-heading">' + t('recurring.cycle') + '</label>' +
+          '<select data-draft-cycle class="' + control + '">' +
+          CYCLES.map((c) => '<option value="' + c + '" ' + (c === draft.cycle ? 'selected' : '') + '>' + t('cycles.' + c) + '</option>').join('') +
+          '</select></div>' +
+          '<div><label class="mb-1.5 block text-sm font-medium text-heading">' + t('recurring.nextIssue') + '</label>' +
+          '<input type="date" data-draft-next value="' + draft.nextIssueAt + '" class="' + control + '"/></div>' +
+          '</div>' +
+          UI.itemsEditor(draft) +
+          '<label class="flex items-center gap-3 text-sm text-body">' + UI.switchToggle(draft.active, 'data-draft-active') + t('recurring.active') + '</label>' +
+          '</div>'
+        : '';
+
+      const modalFooter =
+        '<button type="button" data-draft-cancel class="h-10 rounded-lg border border-themed px-4 text-sm font-medium text-body transition hover:bg-gray-50 dark:hover:bg-gray-800">' + t('common.cancel') + '</button>' +
+        '<button type="button" data-draft-save class="h-10 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">' + t('common.save') + '</button>';
+
+      document.getElementById('page').innerHTML =
+        UI.pageHeader({
+          title: t('recurring.title'),
+          subtitle: t('recurring.subtitle'),
+          crumbs: [{ label: t('appNav.dashboard'), href: 'app.html', icon: 'dashboard' }, { label: t('recurring.title') }],
+          action: '<button type="button" data-new class="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">' +
+            icon('plus', { size: 16 }) + t('recurring.new') + '</button>',
+        }) +
+        kpis + cards +
+        UI.modal(MODAL_ID, {
+          size: 'xl',
+          title: draft && draft.id ? t('common.edit') : t('recurring.new'),
+          body: modalBody,
+          footer: modalFooter,
+        });
+
+      document.querySelectorAll('[data-new]').forEach((el) => el.addEventListener('click', openNew));
+      document.querySelectorAll('[data-edit]').forEach((el) =>
+        el.addEventListener('click', () => openEdit(IV.get().recurrings.find((r) => r.id === Number(el.getAttribute('data-edit')))))
+      );
+      document.querySelectorAll('[data-toggle-active]').forEach((el) =>
+        el.addEventListener('click', () => {
+          IV.toggleRecurringActive(Number(el.getAttribute('data-toggle-active')));
+          UI.notify(t('settings.saved'), 'success');
+          window.renderPage();
+        })
+      );
+      document.querySelectorAll('[data-generate]').forEach((el) =>
+        el.addEventListener('click', () => {
+          const invoice = IV.generateInvoiceFromRecurring(Number(el.getAttribute('data-generate')));
+          if (invoice) UI.notify(t('recurring.generated', { number: invoice.number }), 'success');
+          window.renderPage();
+        })
+      );
+      document.querySelectorAll('[data-delete]').forEach((el) =>
+        el.addEventListener('click', () => {
+          if (!window.confirm(t('recurring.confirmDelete'))) return;
+          IV.removeRecurring(Number(el.getAttribute('data-delete')));
+          UI.notify(t('recurring.deleted'), 'success');
+          window.renderPage();
+        })
+      );
+
+      if (draft) {
+        UI.openModal(MODAL_ID);
+        const root = document.getElementById(MODAL_ID);
+        root.querySelector('[data-draft-client]').addEventListener('change', (e) => { draft.clientId = Number(e.target.value); });
+        root.querySelector('[data-draft-cycle]').addEventListener('change', (e) => { draft.cycle = e.target.value; });
+        root.querySelector('[data-draft-next]').addEventListener('change', (e) => { draft.nextIssueAt = e.target.value; });
+        root.querySelector('[data-draft-active]').addEventListener('click', () => { draft.active = !draft.active; window.renderPage(); });
+        UI.wireItemsEditor(root.querySelector('[data-items-editor]'), {
+          get: () => draft,
+          setItems: (items) => { draft.items = items; },
+          rerender: () => window.renderPage(),
+        });
+        root.querySelectorAll('[data-modal-close], [data-draft-cancel]').forEach((el) =>
+          el.addEventListener('click', () => { draft = null; window.renderPage(); })
+        );
+        root.querySelector('[data-draft-save]').addEventListener('click', save);
+      } else {
+        UI.closeModal(MODAL_ID);
+      }
+    };
+  </script>
+  <script src="assets/js/layout.js"></script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <title>Orçamentos — Conta Certa</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css" />
+  <script src="assets/js/state.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/format.js"></script>
+  <script src="assets/js/query.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/iv.js"></script>
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/i18n.js"></script>
+</head>
+<body data-shell="app" data-guard="true">
+  <div id="app"><div id="page"></div></div>
+
+  <script>
+    const STATUSES = ['rascunho', 'enviado', 'aceito', 'recusado', 'expirado'];
+    const PREVIEW_ID = 'quote-preview';
+
+    let search = '';
+    let status = 'todos';
+    let previewId = null;
+
+    function visibleRows() {
+      const term = search.trim().toLowerCase();
+      return IV.get().quotes
+        .filter((q) => {
+          if (status !== 'todos' && q.status !== status) return false;
+          if (!term) return true;
+          return (q.number + ' ' + IV.clientName(q.clientId) + ' ' + q.notes).toLowerCase().indexOf(term) !== -1;
+        })
+        .sort((a, b) => new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime());
+    }
+
+    /** Repinta resumo + tabela; a barra de filtros (e o campo de busca) fica intacta. */
+    function renderResults() {
+      const t = UI.t, icon = UI.icon, esc = UI.esc;
+      const st = IV.get();
+      const rows = visibleRows();
+
+      const openQuotes = st.quotes.filter((q) => q.status === 'enviado');
+      const acceptedQuotes = st.quotes.filter((q) => q.status === 'aceito');
+      const negotiationValue = Query.round2(openQuotes.reduce((sum, q) => sum + Query.invoiceTotal(q), 0));
+
+      document.getElementById('summary').innerHTML =
+        UI.summaryCard({ label: t('quotes.summaryOpen'), value: String(openQuotes.length), icon: 'file-text', accent: 'text-brand-500' }) +
+        UI.summaryCard({ label: t('quotes.summaryAccepted'), value: String(acceptedQuotes.length), icon: 'check-circle', accent: 'text-success-600' }) +
+        UI.summaryCard({ label: t('quotes.summaryValue'), value: UI.fmt(negotiationValue), icon: 'dollar', accent: 'text-warning-600' });
+
+      const actionBtn = 'flex h-8 w-8 items-center justify-center rounded-lg border border-themed text-muted transition hover:text-brand-600';
+
+      function actions(quote) {
+        let out = '<button type="button" data-preview="' + quote.id + '" class="' + actionBtn + '" title="' + esc(t('common.details')) + '">' + icon('eye', { size: 15 }) + '</button>';
+        if (quote.status === 'rascunho' || quote.status === 'enviado')
+          out += '<button type="button" data-edit="' + quote.id + '" class="' + actionBtn + '" title="' + esc(t('common.edit')) + '">' + icon('edit', { size: 15 }) + '</button>';
+        if (quote.status === 'enviado')
+          out += '<button type="button" data-accept="' + quote.id + '" class="' + actionBtn + ' hover:text-success-600" title="' + esc(t('quotes.accept')) + '">' + icon('check', { size: 15 }) + '</button>' +
+                 '<button type="button" data-reject="' + quote.id + '" class="' + actionBtn + ' hover:text-error-500" title="' + esc(t('quotes.reject')) + '">' + icon('x', { size: 15 }) + '</button>';
+        if (quote.status !== 'recusado')
+          out += '<button type="button" data-convert="' + quote.id + '" class="' + actionBtn + '" title="' + esc(t('quotes.convert')) + '">' + icon('receipt', { size: 15 }) + '</button>';
+        out += '<button type="button" data-delete="' + quote.id + '" class="' + actionBtn + ' hover:text-error-500" title="' + esc(t('common.delete')) + '">' + icon('trash', { size: 15 }) + '</button>';
+        return out;
+      }
+
+      document.getElementById('results').innerHTML = rows.length === 0
+        ? '<div class="surface-card rounded-2xl border">' + UI.emptyState({ icon: 'file-text', title: t('quotes.empty'), description: t('quotes.emptyDesc') }) + '</div>'
+        : '<div class="surface-card overflow-hidden rounded-2xl border"><div class="overflow-x-auto">' +
+          '<table class="w-full min-w-[820px] text-sm"><thead>' +
+          '<tr class="border-b border-themed text-left text-xs uppercase tracking-wider text-muted">' +
+          '<th class="px-5 py-3 font-medium">' + t('quotes.number') + '</th>' +
+          '<th class="px-5 py-3 font-medium">' + t('invoices.client') + '</th>' +
+          '<th class="px-5 py-3 font-medium">' + t('invoices.issuedAt') + '</th>' +
+          '<th class="px-5 py-3 font-medium">' + t('quotes.validUntil') + '</th>' +
+          '<th class="px-5 py-3 font-medium">' + t('common.status') + '</th>' +
+          '<th class="px-5 py-3 text-right font-medium">' + t('items.total') + '</th>' +
+          '<th class="px-5 py-3 text-right font-medium">' + t('common.actions') + '</th>' +
+          '</tr></thead><tbody class="divide-y divide-[color:var(--tx-border)]">' +
+          rows.map((quote) =>
+            '<tr class="hover:bg-gray-50 dark:hover:bg-white/5">' +
+            '<td class="px-5 py-3"><button type="button" data-preview="' + quote.id + '" class="font-medium text-heading hover:text-brand-600">' + esc(quote.number) + '</button></td>' +
+            '<td class="px-5 py-3 text-body">' + esc(IV.clientName(quote.clientId)) + '</td>' +
+            '<td class="px-5 py-3 text-muted">' + UI.fmtDate(quote.issuedAt) + '</td>' +
+            '<td class="px-5 py-3 text-muted">' + UI.fmtDate(quote.validUntil) + '</td>' +
+            '<td class="px-5 py-3">' + UI.quotePill(quote.status) + '</td>' +
+            '<td class="px-5 py-3 text-right font-medium text-heading">' + UI.fmt(Query.invoiceTotal(quote)) + '</td>' +
+            '<td class="px-5 py-3"><div class="flex items-center justify-end gap-1.5">' + actions(quote) + '</div></td></tr>'
+          ).join('') +
+          '</tbody></table></div></div>';
+
+      wireResults();
+    }
+
+    function wireResults() {
+      const t = UI.t;
+      const on = (sel, fn) => document.querySelectorAll(sel).forEach((el) => el.addEventListener('click', () => fn(el)));
+
+      on('[data-edit]', (el) => { IV.Editor.editQuote(IV.quoteById(Number(el.getAttribute('data-edit')))); window.renderPage(); });
+      on('[data-accept]', (el) => { IV.acceptQuote(Number(el.getAttribute('data-accept'))); UI.notify(t('quotes.accepted'), 'success'); renderResults(); });
+      on('[data-reject]', (el) => { IV.rejectQuote(Number(el.getAttribute('data-reject'))); UI.notify(t('quotes.rejected'), 'success'); renderResults(); });
+      on('[data-convert]', (el) => {
+        const invoice = IV.convertQuoteToInvoice(Number(el.getAttribute('data-convert')));
+        if (invoice) UI.notify(t('quotes.converted', { number: invoice.number }), 'success');
+        renderResults();
+      });
+      on('[data-delete]', (el) => {
+        if (!window.confirm(t('quotes.confirmDelete'))) return;
+        IV.removeQuote(Number(el.getAttribute('data-delete')));
+        UI.notify(t('quotes.deleted'), 'success');
+        renderResults();
+      });
+      on('[data-preview]', (el) => { previewId = Number(el.getAttribute('data-preview')); window.renderPage(); });
+    }
+
+    window.renderPage = function () {
+      const t = UI.t, icon = UI.icon, esc = UI.esc;
+
+      const controls = UI.filterSelect(t('common.status'), 'data-filter-status',
+        '<option value="todos">' + t('invoices.allStatuses') + '</option>' +
+        STATUSES.map((s) => '<option value="' + s + '" ' + (status === s ? 'selected' : '') + '>' + t('quoteStatuses.' + s) + '</option>').join(''));
+
+      const preview = previewId != null ? IV.quoteById(previewId) : null;
+
+      const previewBody = preview
+        ? '<div class="space-y-4">' +
+          '<div class="flex flex-wrap items-center gap-3">' + UI.quotePill(preview.status) +
+          '<span class="text-xs text-muted">' + t('invoices.issuedAt') + ': ' + UI.fmtDate(preview.issuedAt) + '</span></div>' +
+          UI.itemsEditor(preview, { readOnly: true }) +
+          (preview.notes
+            ? '<div class="rounded-xl border border-themed p-4 text-sm text-muted">' +
+              '<p class="font-medium text-heading">' + t('document.notes') + '</p><p class="mt-1">' + esc(preview.notes) + '</p></div>'
+            : '') +
+          '</div>'
+        : '';
+
+      const previewFooter = preview
+        ? '<button type="button" data-modal-close class="h-10 rounded-lg border border-themed px-4 text-sm font-medium text-body transition hover:bg-gray-50 dark:hover:bg-gray-800">' + t('common.close') + '</button>' +
+          (preview.status !== 'recusado'
+            ? '<button type="button" data-preview-convert class="h-10 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">' + t('quotes.convert') + '</button>'
+            : '')
+        : '';
+
+      document.getElementById('page').innerHTML =
+        UI.pageHeader({
+          title: t('quotes.title'),
+          subtitle: t('quotes.subtitle'),
+          crumbs: [{ label: t('appNav.dashboard'), href: 'app.html', icon: 'dashboard' }, { label: t('quotes.title') }],
+          action: '<button type="button" data-new class="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">' +
+            icon('plus', { size: 16 }) + t('quotes.new') + '</button>',
+        }) +
+        '<div id="summary" class="mb-5 grid gap-4 sm:grid-cols-3"></div>' +
+        UI.filterBar({ search: search, placeholder: t('invoices.searchPlaceholder'), controls: controls }) +
+        '<div id="results"></div>' +
+        UI.modal(PREVIEW_ID, {
+          size: 'xl',
+          title: preview ? esc(preview.number) + ' · ' + esc(IV.clientName(preview.clientId)) : '',
+          subtitle: preview ? t('quotes.validUntil') + ': ' + UI.fmtDate(preview.validUntil) : '',
+          body: previewBody,
+          footer: previewFooter,
+        }) +
+        UI.documentEditorModal();
+
+      const searchEl = document.querySelector('[data-filter-search]');
+      if (searchEl) searchEl.addEventListener('input', () => { search = searchEl.value; renderResults(); });
+      const statusEl = document.querySelector('[data-filter-status]');
+      if (statusEl) statusEl.addEventListener('change', () => { status = statusEl.value; renderResults(); });
+      document.querySelectorAll('[data-new]').forEach((el) =>
+        el.addEventListener('click', () => { IV.Editor.startQuote(IV.get().company); window.renderPage(); })
+      );
+
+      renderResults();
+
+      if (preview) {
+        UI.openModal(PREVIEW_ID);
+        document.querySelectorAll('#' + PREVIEW_ID + ' [data-modal-close]').forEach((el) =>
+          el.addEventListener('click', () => { previewId = null; window.renderPage(); })
+        );
+        const convert = document.querySelector('[data-preview-convert]');
+        if (convert) {
+          convert.addEventListener('click', () => {
+            const invoice = IV.convertQuoteToInvoice(preview.id);
+            if (invoice) UI.notify(t('quotes.converted', { number: invoice.number }), 'success');
+            previewId = null;
+            window.renderPage();
+          });
+        }
+      } else {
+        UI.closeModal(PREVIEW_ID);
+      }
+
+      UI.wireDocumentEditor();
+    };
+  </script>
+  <script src="assets/js/layout.js"></script>
+</body>
+</html>

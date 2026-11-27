@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <title>Sobre — Conta Certa</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css" />
+  <script src="assets/js/state.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/format.js"></script>
+  <script src="assets/js/query.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/iv.js"></script>
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/i18n.js"></script>
+</head>
+<body data-shell="public">
+  <div id="app"><div id="page"></div></div>
+
+  <script>
+    const VALUE_KEYS = [
+      { key: 'numbers', icon: 'calculator' },
+      { key: 'simple', icon: 'zap' },
+      { key: 'support', icon: 'message-circle' },
+    ];
+
+    const NUMBERS = [
+      { value: '3.200', labelKey: 'home.stats.companies' },
+      { value: '84 mil', labelKey: 'home.stats.invoices' },
+      { value: '11', labelKey: 'home.stats.hours' },
+      { value: '4,8', labelKey: 'home.stats.rating' },
+    ];
+
+    window.renderPage = function () {
+      const t = UI.t, icon = UI.icon;
+
+      const story =
+        '<section class="mt-12 grid gap-8 lg:grid-cols-3">' +
+        '<div class="lg:col-span-2"><h2 class="text-lg font-semibold text-heading">' + t('about.storyTitle') + '</h2>' +
+        '<p class="mt-3 text-sm text-muted">' + t('about.story1') + '</p>' +
+        '<p class="mt-3 text-sm text-muted">' + t('about.story2') + '</p></div>' +
+        '<div class="surface-card rounded-2xl border p-6"><h3 class="text-sm font-semibold text-heading">' + t('about.numbersTitle') + '</h3>' +
+        '<dl class="mt-4 grid grid-cols-2 gap-4">' +
+        NUMBERS.map((n) => '<div><dt class="text-title-sm font-bold text-brand-500">' + n.value + '</dt>' +
+          '<dd class="mt-1 text-xs text-muted">' + t(n.labelKey) + '</dd></div>').join('') +
+        '</dl></div></section>';
+
+      const timeline =
+        '<section class="mt-16"><h2 class="font-bold text-heading text-title-sm">' + t('about.timelineTitle') + '</h2>' +
+        '<ol class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">' +
+        Data.TIMELINE_KEYS.map((key, index) =>
+          '<li class="surface-card relative rounded-2xl border p-5">' +
+          '<span class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-500 text-xs font-bold text-white">' + (index + 1) + '</span>' +
+          '<p class="mt-4 text-xs font-semibold uppercase tracking-wider text-brand-500">' + t('timeline.' + key + '.year') + '</p>' +
+          '<h3 class="mt-1 text-sm font-semibold text-heading">' + t('timeline.' + key + '.title') + '</h3>' +
+          '<p class="mt-2 text-xs text-muted">' + t('timeline.' + key + '.desc') + '</p></li>'
+        ).join('') + '</ol></section>';
+
+      const values =
+        '<section class="mt-16"><h2 class="font-bold text-heading text-title-sm">' + t('about.valuesTitle') + '</h2>' +
+        '<div class="mt-8 grid gap-6 lg:grid-cols-3">' +
+        VALUE_KEYS.map((value) =>
+          '<div class="surface-card rounded-2xl border p-6">' +
+          '<span class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-500 dark:bg-brand-500/15">' +
+          icon(value.icon, { size: 20 }) + '</span>' +
+          '<h3 class="mt-4 text-base font-semibold text-heading">' + t('values.' + value.key + '.title') + '</h3>' +
+          '<p class="mt-2 text-sm text-muted">' + t('values.' + value.key + '.desc') + '</p></div>'
+        ).join('') + '</div></section>';
+
+      const team =
+        '<section class="mt-16"><h2 class="font-bold text-heading text-title-sm">' + t('about.teamTitle') + '</h2>' +
+        '<div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">' +
+        Data.TEAM.map((member) => UI.teamCard(member)).join('') + '</div></section>';
+
+      document.getElementById('page').innerHTML =
+        '<div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16 lg:px-8">' +
+        '<header class="max-w-2xl">' +
+        '<p class="text-sm font-semibold uppercase tracking-wider text-brand-500">' + t('about.eyebrow') + '</p>' +
+        '<h1 class="mt-2 font-bold text-heading text-title-sm sm:text-title-md">' + t('about.title') + '</h1>' +
+        '<p class="mt-3 text-muted">' + t('about.subtitle') + '</p></header>' +
+        story + timeline + values + team + '</div>';
+    };
+  </script>
+  <script src="assets/js/layout.js"></script>
+</body>
+</html>

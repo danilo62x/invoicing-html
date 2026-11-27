@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <title>Criar conta — Conta Certa</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css" />
+  <script src="assets/js/state.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/format.js"></script>
+  <script src="assets/js/query.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/iv.js"></script>
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/i18n.js"></script>
+</head>
+<body data-shell="blank">
+  <div id="app"><div id="page"></div></div>
+
+  <script>
+    const draft = { name: '', company: '', email: '', password: '' };
+    let accepted = false;
+    let loading = false;
+
+    function authShell(title, subtitle, inner, footer) {
+      const t = UI.t;
+      return '<div class="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-50 via-white to-brand-100 px-4 py-10 dark:from-gray-900 dark:via-gray-dark dark:to-gray-900">' +
+        '<div class="absolute inset-0 -z-10 overflow-hidden">' +
+        '<div class="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-brand-200/40 blur-3xl dark:bg-brand-500/10"></div>' +
+        '<div class="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-success-100/60 blur-3xl dark:bg-brand-700/10"></div></div>' +
+        '<div class="w-full max-w-md">' +
+        '<div class="mb-6 flex flex-col items-center">' +
+        '<a href="index.html" class="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500 text-white shadow-theme-md">' +
+        UI.icon('receipt', { size: 26 }) + '</a>' +
+        '<h1 class="mt-5 text-title-sm font-bold text-heading">' + title + '</h1>' +
+        '<p class="mt-2 text-center text-sm text-muted">' + subtitle + '</p></div>' +
+        '<div class="surface-card rounded-2xl border p-6 shadow-theme-md md:p-8">' + inner + '</div>' +
+        (footer ? '<p class="mt-6 text-center text-sm text-muted">' + footer + '</p>' : '') +
+        '<p class="mt-6 text-center text-xs text-muted"><a href="index.html" class="hover:text-brand-500">← ' + t('brand') + '</a></p>' +
+        '</div></div>';
+    }
+
+    window.renderPage = function () {
+      const t = UI.t, icon = UI.icon, esc = UI.esc;
+      const input = 'h-11 w-full rounded-lg border border-themed bg-gray-50 px-3 text-sm text-body outline-none focus:border-brand-300 focus-ring dark:bg-gray-900';
+
+      const field = (key, label, attrs, placeholder) =>
+        '<div><label class="mb-2 block text-sm font-medium text-heading">' + label + '</label>' +
+        '<input data-reg="' + key + '" value="' + esc(draft[key]) + '" ' + (attrs || '') +
+        ' placeholder="' + esc(placeholder || '') + '" class="' + input + '"/></div>';
+
+      const inner =
+        '<form data-register-form class="space-y-4">' +
+        field('name', t('auth.name'), 'required') +
+        field('company', t('auth.company'), '') +
+        field('email', t('auth.email'), 'required type="email"') +
+        field('password', t('auth.password'), 'required type="password"', '••••••••') +
+        '<label class="flex items-center gap-2 text-sm text-body">' +
+        '<input type="checkbox" required data-reg-terms ' + (accepted ? 'checked' : '') + ' class="h-4 w-4 rounded border-themed accent-brand-500"/>' +
+        t('auth.terms') + '</label>' +
+        '<button type="submit" ' + (loading ? 'disabled' : '') + ' class="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand-500 text-sm font-medium text-white transition hover:bg-brand-600 focus-ring disabled:opacity-60">' +
+        (loading
+          ? '<span class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>'
+          : icon('check', { size: 18 }) + t('auth.registerCta')) +
+        '</button></form>';
+
+      const footer = t('auth.hasAccount') + ' <a href="login.html" class="font-medium text-brand-500 hover:text-brand-600">' + t('auth.loginLink') + '</a>';
+
+      document.getElementById('page').innerHTML = authShell(t('auth.registerTitle'), t('auth.registerSubtitle'), inner, footer);
+
+      document.querySelectorAll('[data-reg]').forEach((el) =>
+        el.addEventListener('input', () => { draft[el.getAttribute('data-reg')] = el.value; })
+      );
+      const terms = document.querySelector('[data-reg-terms]');
+      terms.addEventListener('change', () => { accepted = terms.checked; });
+
+      document.querySelector('[data-register-form]').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        loading = true;
+        window.renderPage();
+        const ok = await Auth.register(draft.name, draft.email, draft.password);
+        loading = false;
+        if (ok) {
+          if (draft.company) Auth.updateProfile({ company: draft.company });
+          UI.notify(t('auth.registerSuccess'), 'success');
+          window.location.href = 'app.html';
+          return;
+        }
+        window.renderPage();
+      });
+    };
+  </script>
+  <script src="assets/js/layout.js"></script>
+</body>
+</html>

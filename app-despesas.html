@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <title>Despesas — Conta Certa</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css" />
+  <script src="assets/js/state.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/format.js"></script>
+  <script src="assets/js/query.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/iv.js"></script>
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/i18n.js"></script>
+</head>
+<body data-shell="app" data-guard="true">
+  <div id="app"><div id="page"></div></div>
+
+  <script>
+    const CATEGORIES = ['software', 'escritorio', 'impostos', 'servicos', 'marketing', 'transporte', 'equipamento', 'pessoal'];
+    const CATEGORY_ICON = {
+      software: 'layers', escritorio: 'store', impostos: 'percent', servicos: 'briefcase',
+      marketing: 'zap', transporte: 'truck', equipamento: 'package', pessoal: 'users',
+    };
+    const MODAL_ID = 'expense-modal';
+
+    const EMPTY = () => ({
+      id: null,
+      at: new Date().toISOString().slice(0, 10),
+      description: '',
+      category: 'servicos',
+      amount: 0,
+      deductible: true,
+      receipt: null,
+      supplier: '',
+    });
+
+    let search = '';
+    let category = 'todas';
+    let draft = null;
+
+    function visibleRows() {
+      const term = search.trim().toLowerCase();
+      return IV.get().expenses
+        .filter((e) => {
+          if (category !== 'todas' && e.category !== category) return false;
+          if (!term) return true;
+          return (e.description + ' ' + e.supplier).toLowerCase().indexOf(term) !== -1;
+        })
+        .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+    }
+
+    /**
+     * Repinta KPIs, tabela e quebra por categoria. A barra de filtros fica de
+     * fora de propósito: assim o campo de busca nunca é recriado.
+     */
+    function renderResults() {
+      const t = UI.t, icon = UI.icon, esc = UI.esc;
+      const rows = visibleRows();
+
+      const total = Query.round2(rows.reduce((sum, e) => sum + e.amount, 0));
+      const deductible = Query.round2(rows.filter((e) => e.deductible).reduce((sum, e) => sum + e.amount, 0));
+      const byCategory = Query.expensesByCategory(rows);
+
+      document.getElementById('kpis').innerHTML =
+        UI.kpiCard({ title: t('expenses.totalPeriod'), value: UI.fmt(total), icon: 'banknote', accent: 'warning' }) +
+        UI.kpiCard({ title: t('expenses.deductibleTotal'), value: UI.fmt(deductible), icon: 'shield-check', accent: 'success' }) +
+        UI.kpiCard({ title: t('expenses.nonDeductibleTotal'), value: UI.fmt(Query.round2(total - deductible)), icon: 'alert-triangle', accent: 'error' });
+
+      const iconBtn = 'flex h-8 w-8 items-center justify-center rounded-lg border border-themed text-muted transition hover:text-brand-600';
+
+      document.getElementById('results').innerHTML = rows.length === 0
+        ? '<div class="surface-card rounded-2xl border">' + UI.emptyState({ icon: 'banknote', title: t('expenses.empty'), description: t('expenses.emptyDesc') }) + '</div>'
+        : '<div class="surface-card overflow-hidden rounded-2xl border"><div class="overflow-x-auto">' +
+          '<table class="w-full min-w-[880px] text-sm"><thead>' +
+          '<tr class="border-b border-themed text-left text-xs uppercase tracking-wider text-muted">' +
+          '<th class="px-5 py-3 font-medium">' + t('expenses.date') + '</th>' +
+          '<th class="px-5 py-3 font-medium">' + t('expenses.description') + '</th>' +
+          '<th class="px-5 py-3 font-medium">' + t('expenses.category') + '</th>' +
+          '<th class="px-5 py-3 font-medium">' + t('expenses.receipt') + '</th>' +
+          '<th class="px-5 py-3 text-center font-medium">' + t('expenses.deductible') + '</th>' +
+          '<th class="px-5 py-3 text-right font-medium">' + t('expenses.amount') + '</th>' +
+          '<th class="px-5 py-3 text-right font-medium">' + t('common.actions') + '</th>' +
+          '</tr></thead><tbody class="divide-y divide-[color:var(--tx-border)]">' +
+          rows.map((expense) =>
+            '<tr class="hover:bg-gray-50 dark:hover:bg-white/5">' +
+            '<td class="px-5 py-3 text-muted">' + UI.fmtDate(expense.at) + '</td>' +
+            '<td class="px-5 py-3"><p class="font-medium text-heading">' + esc(expense.description) + '</p>' +
+            '<p class="text-xs text-muted">' + esc(expense.supplier) + '</p></td>' +
+            '<td class="px-5 py-3">' + UI.badge(t('expenseCategories.' + expense.category), 'gray', { icon: CATEGORY_ICON[expense.category] }) + '</td>' +
+            '<td class="px-5 py-3 text-xs text-muted">' +
+            (expense.receipt
+              ? '<span class="inline-flex items-center gap-1.5">' + icon('file-text', { size: 14 }) + esc(expense.receipt) + '</span>'
+              : t('expenses.noReceipt')) + '</td>' +
+            '<td class="px-5 py-3"><div class="flex justify-center">' +
+            UI.switchToggle(expense.deductible, 'data-toggle-deductible="' + expense.id + '"', 'sm') + '</div></td>' +
+            '<td class="px-5 py-3 text-right font-medium text-heading">' + UI.fmt(expense.amount) + '</td>' +
+            '<td class="px-5 py-3"><div class="flex items-center justify-end gap-1.5">' +
+            '<button type="button" data-edit="' + expense.id + '" class="' + iconBtn + '" title="' + esc(t('common.edit')) + '">' + icon('edit', { size: 15 }) + '</button>' +
+            '<button type="button" data-delete="' + expense.id + '" class="' + iconBtn + ' hover:text-error-500" title="' + esc(t('common.remove')) + '">' + icon('trash', { size: 15 }) + '</button>' +
+            '</div></td></tr>'
+          ).join('') +
+          '</tbody></table></div></div>';
+
+      document.getElementById('by-category').innerHTML =
+        '<h2 class="text-base font-semibold text-heading">' + t('expenses.byCategory') + '</h2>' +
+        (byCategory.length === 0
+          ? '<p class="mt-4 text-sm text-muted">' + t('common.empty') + '</p>'
+          : '<ul class="mt-5 space-y-4">' + byCategory.map((row) =>
+              '<li><div class="flex items-center justify-between gap-2 text-sm">' +
+              '<span class="truncate text-body">' + t('expenseCategories.' + row.category) + '</span>' +
+              '<span class="shrink-0 font-medium text-heading">' + UI.fmt(row.amount) + '</span></div>' +
+              '<div class="mt-2 h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">' +
+              '<div class="h-full rounded-full bg-warning-500" style="width:' + row.share + '%"></div></div></li>'
+            ).join('') + '</ul>');
+
+      const on = (sel, fn) => document.querySelectorAll(sel).forEach((el) => el.addEventListener('click', () => fn(el)));
+      on('[data-edit]', (el) => {
+        const expense = IV.get().expenses.find((e) => e.id === Number(el.getAttribute('data-edit')));
+        draft = Object.assign({}, expense, { at: expense.at.slice(0, 10) });
+        window.renderPage();
+      });
+      on('[data-delete]', (el) => {
+        if (!window.confirm(t('expenses.confirmDelete'))) return;
+        IV.removeExpense(Number(el.getAttribute('data-delete')));
+        UI.notify(t('expenses.deleted'), 'success');
+        renderResults();
+      });
+      on('[data-toggle-deductible]', (el) => { IV.toggleDeductible(Number(el.getAttribute('data-toggle-deductible'))); renderResults(); });
+    }
+
+    function save() {
+      if (!draft || !draft.description.trim()) return;
+      const payload = {
+        at: new Date(draft.at + 'T11:00:00').toISOString(),
+        description: draft.description,
+        category: draft.category,
+        amount: Query.round2(draft.amount),
+        deductible: draft.deductible,
+        receipt: draft.receipt && draft.receipt.trim() ? draft.receipt.trim() : null,
+        supplier: draft.supplier,
+      };
+      if (draft.id) {
+        IV.updateExpense(draft.id, payload);
+        UI.notify(UI.t('expenses.saved'), 'success');
+      } else {
+        IV.addExpense(payload);
+        UI.notify(UI.t('expenses.created'), 'success');
+      }
+      draft = null;
+      window.renderPage();
+    }
+
+    window.renderPage = function () {
+      const t = UI.t, icon = UI.icon, esc = UI.esc;
+
+      const controls = UI.filterSelect(t('expenses.filterCategory'), 'data-filter-category',
+        '<option value="todas">' + t('expenses.allCategories') + '</option>' +
+        CATEGORIES.map((c) => '<option value="' + c + '" ' + (category === c ? 'selected' : '') + '>' + t('expenseCategories.' + c) + '</option>').join(''));
+
+      const control = 'h-11 w-full rounded-lg border border-themed bg-transparent px-3 text-sm text-body focus-ring';
+
+      const modalBody = draft
+        ? '<div class="grid gap-4 sm:grid-cols-2">' +
+          '<div class="sm:col-span-2"><label class="mb-1.5 block text-sm font-medium text-heading">' + t('expenses.description') + '</label>' +
+          '<input data-draft="description" value="' + esc(draft.description) + '" class="' + control + '"/></div>' +
+          '<div><label class="mb-1.5 block text-sm font-medium text-heading">' + t('expenses.date') + '</label>' +
+          '<input type="date" data-draft="at" value="' + draft.at + '" class="' + control + '"/></div>' +
+          '<div><label class="mb-1.5 block text-sm font-medium text-heading">' + t('expenses.amount') + '</label>' +
+          '<input type="number" min="0" step="10" data-draft="amount" value="' + draft.amount + '" class="' + control + '"/></div>' +
+          '<div><label class="mb-1.5 block text-sm font-medium text-heading">' + t('expenses.category') + '</label>' +
+          '<select data-draft="category" class="' + control + '">' +
+          CATEGORIES.map((c) => '<option value="' + c + '" ' + (draft.category === c ? 'selected' : '') + '>' + t('expenseCategories.' + c) + '</option>').join('') +
+          '</select></div>' +
+          '<div><label class="mb-1.5 block text-sm font-medium text-heading">' + t('expenses.supplier') + '</label>' +
+          '<input data-draft="supplier" value="' + esc(draft.supplier) + '" class="' + control + '"/></div>' +
+          '<div class="sm:col-span-2"><label class="mb-1.5 block text-sm font-medium text-heading">' + t('expenses.attach') + '</label>' +
+          '<input data-draft="receipt" value="' + esc(draft.receipt || '') + '" placeholder="nf-1234.pdf" class="' + control + '"/></div>' +
+          '<label class="flex items-center gap-3 text-sm text-body sm:col-span-2">' +
+          UI.switchToggle(draft.deductible, 'data-draft-deductible') + t('expenses.deductible') + '</label>' +
+          '</div>'
+        : '';
+
+      const modalFooter =
+        '<button type="button" data-draft-cancel class="h-10 rounded-lg border border-themed px-4 text-sm font-medium text-body transition hover:bg-gray-50 dark:hover:bg-gray-800">' + t('common.cancel') + '</button>' +
+        '<button type="button" data-draft-save class="h-10 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">' + t('common.save') + '</button>';
+
+      document.getElementById('page').innerHTML =
+        UI.pageHeader({
+          title: t('expenses.title'),
+          subtitle: t('expenses.subtitle'),
+          crumbs: [{ label: t('appNav.dashboard'), href: 'app.html', icon: 'dashboard' }, { label: t('expenses.title') }],
+          action: '<button type="button" data-new class="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">' +
+            icon('plus', { size: 16 }) + t('expenses.new') + '</button>',
+        }) +
+        '<div id="kpis" class="grid gap-4 sm:grid-cols-3"></div>' +
+        '<div class="mt-6 grid gap-6 xl:grid-cols-4"><div class="xl:col-span-3">' +
+        UI.filterBar({ search: search, placeholder: t('common.search'), controls: controls }) +
+        '<div id="results"></div></div>' +
+        '<div id="by-category" class="surface-card h-fit rounded-2xl border p-5 md:p-6"></div></div>' +
+        UI.modal(MODAL_ID, {
+          size: 'lg',
+          title: draft && draft.id ? t('common.edit') : t('expenses.new'),
+          body: modalBody,
+          footer: modalFooter,
+        });
+
+      const searchEl = document.querySelector('[data-filter-search]');
+      if (searchEl) searchEl.addEventListener('input', () => { search = searchEl.value; renderResults(); });
+      const catEl = document.querySelector('[data-filter-category]');
+      if (catEl) catEl.addEventListener('change', () => { category = catEl.value; renderResults(); });
+      document.querySelectorAll('[data-new]').forEach((el) =>
+        el.addEventListener('click', () => { draft = EMPTY(); window.renderPage(); })
+      );
+
+      renderResults();
+
+      if (draft) {
+        UI.openModal(MODAL_ID);
+        const root = document.getElementById(MODAL_ID);
+        root.querySelectorAll('[data-draft]').forEach((el) => {
+          const evt = el.tagName === 'SELECT' ? 'change' : 'input';
+          el.addEventListener(evt, () => {
+            const key = el.getAttribute('data-draft');
+            draft[key] = key === 'amount' ? Math.max(0, Number(el.value) || 0) : el.value;
+          });
+        });
+        root.querySelector('[data-draft-deductible]').addEventListener('click', () => { draft.deductible = !draft.deductible; window.renderPage(); });
+        root.querySelectorAll('[data-modal-close], [data-draft-cancel]').forEach((el) =>
+          el.addEventListener('click', () => { draft = null; window.renderPage(); })
+        );
+        root.querySelector('[data-draft-save]').addEventListener('click', save);
+      } else {
+        UI.closeModal(MODAL_ID);
+      }
+    };
+  </script>
+  <script src="assets/js/layout.js"></script>
+</body>
+</html>

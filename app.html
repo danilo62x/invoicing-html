@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <title>Visão geral — Conta Certa</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css" />
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.49.1/dist/apexcharts.min.js"></script>
+  <script src="assets/js/state.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/format.js"></script>
+  <script src="assets/js/query.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/iv.js"></script>
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/i18n.js"></script>
+</head>
+<body data-shell="app" data-guard="true">
+  <div id="app"><div id="page"></div></div>
+
+  <script>
+    window.onThemeChange = function () { window.renderPage(); };
+
+    window.renderPage = function () {
+      const t = UI.t, icon = UI.icon, esc = UI.esc;
+      const st = IV.get();
+      const now = new Date();
+      const currentMonth = Query.monthKey(now);
+
+      const open = st.invoices.filter((inv) => inv.status === 'enviada');
+      const overdueRows = st.invoices.filter((inv) => Query.isOverdue(inv, now));
+      const monthExpenses = st.expenses.filter((e) => Query.monthKey(e.at) === currentMonth);
+
+      const totalReceivable = Query.receivable(st.invoices);
+      const totalOverdue = Query.overdueTotal(st.invoices, now);
+      const received = Query.receivedInMonth(st.invoices, now.getFullYear(), now.getMonth());
+      const spent = Query.expensesInMonth(st.expenses, now.getFullYear(), now.getMonth());
+      const projected = Query.projectedBalance(st.invoices, st.expenses, now);
+
+      const series = Query.revenueByMonth(st.invoices, st.expenses, 6, UI.lang(), now);
+      const topClients = Query.revenueByClient(st.invoices, st.clients).slice(0, 5);
+      const upcoming = Query.upcomingDue(st.invoices, 15, now).slice(0, 5);
+      const late = overdueRows.slice().sort((a, b) => Query.daysOverdue(b, now) - Query.daysOverdue(a, now)).slice(0, 5);
+
+      const kpis =
+        '<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">' +
+        UI.kpiCard({ title: t('dashboard.kpi.receivable'), value: UI.fmt(totalReceivable), icon: 'receipt', accent: 'brand', hint: t('dashboard.kpi.receivableHint', { count: open.length }) }) +
+        UI.kpiCard({ title: t('dashboard.kpi.overdue'), value: UI.fmt(totalOverdue), icon: 'alert-triangle', accent: 'error', hint: t('dashboard.kpi.overdueHint', { count: overdueRows.length }) }) +
+        UI.kpiCard({ title: t('dashboard.kpi.received'), value: UI.fmt(received), icon: 'banknote', accent: 'success', hint: t('dashboard.kpi.receivedHint') }) +
+        UI.kpiCard({ title: t('dashboard.kpi.expenses'), value: UI.fmt(spent), icon: 'credit-card', accent: 'warning', hint: t('dashboard.kpi.expensesHint', { count: monthExpenses.length }) }) +
+        '</div>';
+
+      const chartCard =
+        '<div class="rounded-2xl border border-themed surface-card p-5 shadow-theme-sm xl:col-span-2 md:p-6">' +
+        '<div class="flex flex-wrap items-center justify-between gap-3">' +
+        '<h2 class="text-base font-semibold text-heading">' + t('dashboard.chart.title') + '</h2>' +
+        '<span class="text-xs text-muted">' + t('dashboard.chart.months', { count: 6 }) + '</span></div>' +
+        '<div class="mt-4" id="chart-revenue"></div></div>';
+
+      const projectedCard =
+        '<div class="flex flex-col gap-6">' +
+        '<div class="rounded-2xl border border-themed bg-brand-500 p-6 text-white shadow-theme-sm">' +
+        '<p class="text-sm text-brand-100">' + t('dashboard.projected.title') + '</p>' +
+        '<p class="mt-2 text-title-sm font-bold">' + UI.fmt(projected) + '</p>' +
+        '<p class="mt-2 text-xs text-brand-100">' + t('dashboard.projected.hint') + '</p></div>' +
+        '<div class="flex-1 rounded-2xl border border-themed surface-card p-5 shadow-theme-sm md:p-6">' +
+        '<div class="flex items-center justify-between">' +
+        '<h2 class="text-base font-semibold text-heading">' + t('dashboard.topClients.title') + '</h2>' +
+        '<a href="app-clientes.html" class="text-xs font-medium text-brand-600 dark:text-brand-400">' + t('common.viewAll') + '</a></div>' +
+        (topClients.length === 0
+          ? '<p class="mt-6 text-sm text-muted">' + t('dashboard.topClients.empty') + '</p>'
+          : '<ul class="mt-5 space-y-4">' + topClients.map((row) =>
+              '<li><div class="flex items-center justify-between gap-2 text-sm">' +
+              '<span class="truncate text-body">' + esc(row.name) + '</span>' +
+              '<span class="shrink-0 font-medium text-heading">' + UI.fmt(row.amount) + '</span></div>' +
+              '<div class="mt-2 h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">' +
+              '<div class="h-full rounded-full bg-brand-500" style="width:' + row.share + '%"></div></div>' +
+              '<p class="mt-1 text-xs text-muted">' + t('dashboard.topClients.invoices', { count: row.invoices }) + '</p></li>'
+            ).join('') + '</ul>') +
+        '</div></div>';
+
+      const upcomingCard =
+        '<div class="rounded-2xl border border-themed surface-card p-5 shadow-theme-sm md:p-6">' +
+        '<div class="flex items-center justify-between">' +
+        '<h2 class="text-base font-semibold text-heading">' + t('dashboard.upcoming.title') + '</h2>' +
+        '<a href="app-faturas.html" class="text-xs font-medium text-brand-600 dark:text-brand-400">' + t('common.viewAll') + '</a></div>' +
+        (upcoming.length === 0
+          ? '<p class="mt-6 text-sm text-muted">' + t('dashboard.upcoming.empty') + '</p>'
+          : '<ul class="mt-4 divide-y divide-[color:var(--tx-border)]">' + upcoming.map((inv) =>
+              '<li class="flex items-center justify-between gap-3 py-3"><div class="min-w-0">' +
+              '<a href="app-fatura.html?id=' + inv.id + '" class="truncate text-sm font-medium text-heading hover:text-brand-600">' +
+              esc(inv.number) + ' · ' + esc(IV.clientName(inv.clientId)) + '</a>' +
+              '<p class="truncate text-xs text-muted">' + UI.fmtDate(inv.dueAt) + ' · ' +
+              t('dashboard.upcoming.dueIn', { count: Math.max(0, Query.daysUntilDue(inv, now)) }) + '</p></div>' +
+              '<span class="shrink-0 text-sm font-semibold text-heading">' + UI.fmt(Query.invoiceBalance(inv)) + '</span></li>'
+            ).join('') + '</ul>') +
+        '</div>';
+
+      const lateCard =
+        '<div class="rounded-2xl border border-themed surface-card p-5 shadow-theme-sm md:p-6">' +
+        '<div class="flex items-center justify-between">' +
+        '<h2 class="text-base font-semibold text-heading">' + t('dashboard.overdueList.title') + '</h2>' +
+        '<a href="app-faturas.html" class="text-xs font-medium text-brand-600 dark:text-brand-400">' + t('common.viewAll') + '</a></div>' +
+        (late.length === 0
+          ? '<p class="mt-6 text-sm text-muted">' + t('dashboard.overdueList.empty') + '</p>'
+          : '<ul class="mt-4 divide-y divide-[color:var(--tx-border)]">' + late.map((inv) =>
+              '<li class="flex items-center justify-between gap-3 py-3"><div class="min-w-0">' +
+              '<a href="app-fatura.html?id=' + inv.id + '" class="truncate text-sm font-medium text-heading hover:text-brand-600">' +
+              esc(inv.number) + ' · ' + esc(IV.clientName(inv.clientId)) + '</a>' +
+              '<p class="truncate text-xs text-error-500">' + t('dashboard.overdueList.daysLate', { count: Query.daysOverdue(inv, now) }) + '</p></div>' +
+              '<div class="flex shrink-0 items-center gap-3">' + UI.invoicePill(Query.effectiveStatus(inv, now)) +
+              '<span class="text-sm font-semibold text-heading">' + UI.fmt(Query.invoiceBalance(inv)) + '</span></div></li>'
+            ).join('') + '</ul>') +
+        '</div>';
+
+      document.getElementById('page').innerHTML =
+        UI.pageHeader({
+          title: t('dashboard.title'),
+          subtitle: t('dashboard.subtitle'),
+          action: '<a href="app-faturas.html" class="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">' +
+            icon('plus', { size: 16 }) + t('invoices.new') + '</a>',
+        }) +
+        kpis +
+        '<div class="mt-6 grid gap-6 xl:grid-cols-3">' + chartCard + projectedCard + '</div>' +
+        '<div class="mt-6 grid gap-6 lg:grid-cols-2">' + upcomingCard + lateCard + '</div>';
+
+      UI.apexChart('chart-revenue', {
+        type: 'bar',
+        height: 320,
+        series: [
+          { name: t('dashboard.chart.revenue'), data: series.map((p) => p.revenue) },
+          { name: t('dashboard.chart.expenses'), data: series.map((p) => p.expenses) },
+        ],
+        options: {
+          colors: ['#12b76a', '#f04438'],
+          xaxis: { categories: series.map((p) => p.label) },
+          yaxis: { labels: { formatter: (v) => UI.fmtCompact(v) } },
+          plotOptions: { bar: { borderRadius: 5, columnWidth: '55%' } },
+          legend: { position: 'top', horizontalAlign: 'right' },
+          tooltip: { y: { formatter: (v) => UI.fmt(v) } },
+        },
+      });
+    };
+  </script>
+  <script src="assets/js/layout.js"></script>
+</body>
+</html>

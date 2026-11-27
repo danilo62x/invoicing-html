@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <title>Fatura — Conta Certa</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css" />
+  <script src="assets/js/state.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/format.js"></script>
+  <script src="assets/js/query.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/iv.js"></script>
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/i18n.js"></script>
+</head>
+<body data-shell="app" data-guard="true" data-nav="app-faturas.html">
+  <div id="app"><div id="page"></div></div>
+
+  <script>
+    const invoiceId = Number(new URLSearchParams(window.location.search).get('id'));
+    let payOpen = false;
+
+    /** Linha do tempo do documento (porta de InvoiceDetailPage). */
+    function buildTimeline(invoice, now) {
+      const t = UI.t;
+      const entries = [{ at: invoice.issuedAt, icon: 'edit', label: t('invoiceDetail.timeline.created'), tone: 'text-muted' }];
+      if (invoice.status !== 'rascunho') {
+        entries.push({ at: invoice.issuedAt, icon: 'mail', label: t('invoiceDetail.timeline.sent'), tone: 'text-brand-500' });
+      }
+      for (const payment of invoice.payments) {
+        entries.push({
+          at: payment.at,
+          icon: 'banknote',
+          label: t('invoiceDetail.timeline.payment', {
+            amount: UI.fmt(payment.amount),
+            method: t('paymentMethods.' + payment.method),
+          }),
+          tone: 'text-success-600',
+        });
+      }
+      if (Query.isOverdue(invoice, now)) {
+        entries.push({ at: invoice.dueAt, icon: 'alert-triangle', label: t('invoiceDetail.timeline.overdue'), tone: 'text-error-500' });
+      }
+      if (invoice.status === 'paga') {
+        const last = invoice.payments[invoice.payments.length - 1];
+        entries.push({ at: last ? last.at : invoice.dueAt, icon: 'check-circle', label: t('invoiceDetail.timeline.paid'), tone: 'text-success-600' });
+      }
+      if (invoice.status === 'cancelada') {
+        entries.push({ at: invoice.dueAt, icon: 'x', label: t('invoiceDetail.timeline.cancelled'), tone: 'text-error-500' });
+      }
+      return entries.sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+    }
+
+    window.renderPage = function () {
+      const t = UI.t, icon = UI.icon, esc = UI.esc;
+      const st = IV.get();
+      const now = new Date();
+      const invoice = IV.invoiceById(invoiceId);
+
+      if (!invoice) {
+        document.getElementById('page').innerHTML =
+          '<div class="surface-card rounded-2xl border">' + UI.emptyState({
+            icon: 'receipt',
+            title: t('invoiceDetail.notFound'),
+            description: t('invoiceDetail.notFoundDesc'),
+            action: '<a href="app-faturas.html" class="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">' +
+              icon('arrow-right', { size: 16 }) + t('invoiceDetail.back') + '</a>',
+          }) + '</div>';
+        return;
+      }
+
+      document.title = invoice.number + ' · Conta Certa — Faturamento & Financeiro';
+
+      const client = IV.clientById(invoice.clientId);
+      const status = Query.effectiveStatus(invoice, now);
+      const total = Query.invoiceTotal(invoice);
+      const paid = Query.invoicePaid(invoice);
+      const balance = Query.invoiceBalance(invoice);
+      const percent = Query.invoicePaidPercent(invoice);
+      const actionBtn = 'inline-flex h-10 items-center gap-2 rounded-lg border border-themed px-3.5 text-sm font-medium text-body transition hover:bg-gray-50 dark:hover:bg-gray-800';
+
+      let headerActions =
+        '<a href="app-faturas.html" class="' + actionBtn + '">' + icon('chevron-left', { size: 16 }) + t('common.back') + '</a>' +
+        '<button type="button" data-print class="' + actionBtn + '">' + icon('printer', { size: 16 }) + t('invoiceDetail.print') + '</button>';
+      if (invoice.status === 'rascunho') {
+        headerActions +=
+          '<button type="button" data-edit class="' + actionBtn + '">' + icon('edit', { size: 16 }) + t('common.edit') + '</button>' +
+          '<button type="button" data-send class="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">' +
+          icon('mail', { size: 16 }) + t('invoices.send') + '</button>';
+      }
+      if (invoice.status === 'enviada') {
+        headerActions +=
+          '<button type="button" data-open-pay class="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">' +
+          icon('banknote', { size: 16 }) + t('invoiceDetail.registerPayment') + '</button>';
+      }
+
+      let summaryActions = '';
+      if (invoice.status === 'enviada')
+        summaryActions += '<button type="button" data-markpaid class="' + actionBtn + '">' + icon('check-circle', { size: 16 }) + t('invoices.markPaid') + '</button>';
+      summaryActions += '<button type="button" data-duplicate class="' + actionBtn + '">' + icon('copy', { size: 16 }) + t('invoices.duplicate') + '</button>';
+      if (invoice.status !== 'cancelada' && invoice.status !== 'paga')
+        summaryActions += '<button type="button" data-cancel class="' + actionBtn + ' hover:text-error-500">' + icon('x', { size: 16 }) + t('invoices.cancelInvoice') + '</button>';
+
+      const summaryCard =
+        '<div class="surface-card rounded-2xl border p-5 md:p-6">' +
+        '<div class="flex items-center justify-between gap-3">' +
+        '<h2 class="text-base font-semibold text-heading">' + t('invoiceDetail.summaryTitle') + '</h2>' + UI.invoicePill(status) + '</div>' +
+        '<dl class="mt-5 space-y-2 text-sm">' +
+        '<div class="flex justify-between text-muted"><dt>' + t('items.total') + '</dt><dd class="font-medium text-heading">' + UI.fmt(total) + '</dd></div>' +
+        '<div class="flex justify-between text-muted"><dt>' + t('document.paid') + '</dt><dd class="font-medium text-success-600">' + UI.fmt(paid) + '</dd></div>' +
+        '<div class="flex justify-between border-t border-themed pt-2 text-base font-bold text-heading"><dt>' + t('document.balance') + '</dt><dd>' + UI.fmt(balance) + '</dd></div>' +
+        '</dl>' +
+        '<div class="mt-4 h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">' +
+        '<div class="h-full rounded-full bg-success-500" style="width:' + percent + '%"></div></div>' +
+        '<p class="mt-2 text-xs text-muted">' + t('invoiceDetail.paidPercent', { count: percent }) + '</p>' +
+        (invoice.status === 'enviada'
+          ? '<p class="mt-4 flex items-center gap-1.5 text-xs ' + (Query.isOverdue(invoice, now) ? 'text-error-500' : 'text-muted') + '">' +
+            icon(Query.isOverdue(invoice, now) ? 'alert-triangle' : 'clock', { size: 14 }) +
+            (Query.isOverdue(invoice, now)
+              ? t('invoiceDetail.overdueBy', { count: Query.daysOverdue(invoice, now) })
+              : t('invoiceDetail.dueIn', { count: Math.max(0, Query.daysUntilDue(invoice, now)) })) + '</p>'
+          : '') +
+        '<div class="mt-5 flex flex-wrap gap-2">' + summaryActions + '</div></div>';
+
+      const paymentsCard =
+        '<div class="surface-card rounded-2xl border p-5 md:p-6">' +
+        '<h2 class="text-base font-semibold text-heading">' + t('payments.history') + '</h2>' +
+        (invoice.payments.length === 0
+          ? '<p class="mt-4 text-sm text-muted">' + t('payments.empty') + '</p>'
+          : '<ul class="mt-4 divide-y divide-[color:var(--tx-border)]">' + invoice.payments.map((payment) =>
+              '<li class="flex items-start justify-between gap-3 py-3"><div class="min-w-0">' +
+              '<p class="text-sm font-medium text-heading">' + UI.fmt(payment.amount) + '</p>' +
+              '<p class="text-xs text-muted">' + UI.fmtDate(payment.at) + '</p>' +
+              (payment.note ? '<p class="mt-0.5 text-xs text-muted">' + esc(payment.note) + '</p>' : '') +
+              '</div><div class="flex shrink-0 items-center gap-2">' + UI.methodPill(payment.method) +
+              '<button type="button" data-remove-payment="' + payment.id + '" aria-label="' + esc(t('common.remove')) + '" ' +
+              'class="flex h-7 w-7 items-center justify-center rounded-lg text-muted transition hover:text-error-500">' + icon('trash', { size: 14 }) + '</button>' +
+              '</div></li>'
+            ).join('') + '</ul>') +
+        '</div>';
+
+      const historyCard =
+        '<div class="surface-card rounded-2xl border p-5 md:p-6">' +
+        '<h2 class="text-base font-semibold text-heading">' + t('invoiceDetail.historyTitle') + '</h2>' +
+        '<ol class="mt-4 space-y-4">' + buildTimeline(invoice, now).map((entry) =>
+          '<li class="flex gap-3"><span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-themed">' +
+          icon(entry.icon, { size: 14, className: entry.tone }) + '</span>' +
+          '<div class="min-w-0"><p class="text-sm text-body">' + entry.label + '</p>' +
+          '<p class="text-xs text-muted">' + UI.fmtDateTime(entry.at) + '</p></div></li>'
+        ).join('') + '</ol></div>';
+
+      document.getElementById('page').innerHTML =
+        '<div class="no-print">' + UI.pageHeader({
+          title: esc(invoice.number),
+          subtitle: client ? esc(client.name) : '',
+          crumbs: [
+            { label: t('appNav.dashboard'), href: 'app.html', icon: 'dashboard' },
+            { label: t('invoices.title'), href: 'app-faturas.html' },
+            { label: esc(invoice.number) },
+          ],
+          action: '<div class="flex flex-wrap items-center gap-2">' + headerActions + '</div>',
+        }) + '</div>' +
+        '<div class="grid gap-6 xl:grid-cols-3">' +
+        '<div class="xl:col-span-2">' + UI.invoiceDocument(invoice, client, st.company) + '</div>' +
+        '<aside class="no-print space-y-6">' + summaryCard + paymentsCard + historyCard + '</aside>' +
+        '</div>' +
+        '<div class="no-print">' + UI.documentEditorModal() + UI.paymentModal(payOpen ? invoice : null) + '</div>';
+
+      const on = (sel, fn) => document.querySelectorAll(sel).forEach((el) => el.addEventListener('click', fn));
+
+      on('[data-print]', () => window.print());
+      on('[data-edit]', () => { IV.Editor.editInvoice(IV.invoiceById(invoiceId)); window.renderPage(); });
+      on('[data-send]', () => { IV.sendInvoice(invoiceId); UI.notify(t('invoices.sent'), 'success'); window.renderPage(); });
+      on('[data-open-pay]', () => { payOpen = true; window.renderPage(); });
+      on('[data-markpaid]', () => { IV.markPaid(invoiceId); UI.notify(t('invoices.paid'), 'success'); window.renderPage(); });
+      on('[data-duplicate]', () => {
+        const copy = IV.duplicateInvoice(invoiceId);
+        if (copy) UI.notify(t('invoices.duplicated', { number: copy.number }), 'success');
+        window.renderPage();
+      });
+      on('[data-cancel]', () => { IV.cancelInvoice(invoiceId); UI.notify(t('invoices.cancelled'), 'success'); window.renderPage(); });
+      document.querySelectorAll('[data-remove-payment]').forEach((el) =>
+        el.addEventListener('click', () => {
+          IV.removePayment(invoiceId, Number(el.getAttribute('data-remove-payment')));
+          UI.notify(t('payments.removed'), 'success');
+          window.renderPage();
+        })
+      );
+
+      UI.wireDocumentEditor();
+      UI.wirePaymentModal(
+        payOpen ? invoice : null,
+        (data) => { IV.registerPayment(invoiceId, data); UI.notify(t('payments.registered'), 'success'); },
+        () => { payOpen = false; window.renderPage(); }
+      );
+    };
+  </script>
+  <script src="assets/js/layout.js"></script>
+</body>
+</html>

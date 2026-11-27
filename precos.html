@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <title>Preços — Conta Certa</title>
+  <link rel="stylesheet" href="assets/css/tailwind.css" />
+  <script src="assets/js/state.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/format.js"></script>
+  <script src="assets/js/query.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/iv.js"></script>
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/i18n.js"></script>
+</head>
+<body data-shell="public">
+  <div id="app"><div id="page"></div></div>
+
+  <script>
+    /** Plano anual dá dois meses grátis: 10/12 do preço mensal. */
+    const YEARLY_FACTOR = 10 / 12;
+
+    const COMPARISON_KEYS = [
+      'invoices', 'clients', 'quotes', 'recurring', 'expenses', 'reports', 'export', 'multiUser', 'api', 'support',
+    ];
+
+    let yearly = false;
+    let openFaq = Data.FAQ_KEYS[0];
+
+    window.renderPage = function () {
+      const t = UI.t, icon = UI.icon;
+
+      const toggle = '<div class="mt-8 inline-flex rounded-xl border border-themed p-1">' +
+        [false, true].map((option) =>
+          '<button type="button" data-cycle="' + option + '" class="rounded-lg px-4 py-2 text-sm font-medium transition ' +
+          (yearly === option ? 'bg-brand-500 text-white' : 'text-muted hover:text-heading') + '">' +
+          t(option ? 'pricing.yearly' : 'pricing.monthly') + '</button>'
+        ).join('') + '</div>';
+
+      const plans = Data.PLANS.map((plan) =>
+        UI.planCard(plan, yearly ? Query.round2(plan.price * YEARLY_FACTOR) : plan.price, yearly)
+      ).join('');
+
+      const comparison =
+        '<section class="mt-16"><div class="surface-card overflow-x-auto rounded-2xl border">' +
+        '<table class="w-full min-w-[640px] text-sm"><thead>' +
+        '<tr class="border-b border-themed text-left"><th class="px-5 py-4 font-medium text-muted">' + t('home.plans.all') + '</th>' +
+        Data.PLANS.map((p) => '<th class="px-5 py-4 text-center font-semibold text-heading">' + t('plans.' + p.key + '.name') + '</th>').join('') +
+        '</tr></thead><tbody class="divide-y divide-[color:var(--tx-border)]">' +
+        COMPARISON_KEYS.map((feature) =>
+          '<tr><td class="px-5 py-3 text-body">' + t('planFeatures.' + feature) + '</td>' +
+          Data.PLANS.map((plan) =>
+            '<td class="px-5 py-3 text-center">' +
+            (plan.featureKeys.indexOf(feature) !== -1
+              ? icon('check', { size: 18, className: 'mx-auto text-success-500' })
+              : '<span class="text-gray-300 dark:text-gray-700">—</span>') + '</td>'
+          ).join('') + '</tr>'
+        ).join('') +
+        '</tbody></table></div></section>';
+
+      document.getElementById('page').innerHTML =
+        '<div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16 lg:px-8">' +
+        '<header class="mx-auto max-w-2xl text-center">' +
+        '<p class="text-sm font-semibold uppercase tracking-wider text-brand-500">' + t('pricing.eyebrow') + '</p>' +
+        '<h1 class="mt-2 font-bold text-heading text-title-sm sm:text-title-md">' + t('pricing.title') + '</h1>' +
+        '<p class="mt-3 text-muted">' + t('pricing.subtitle') + '</p>' + toggle + '</header>' +
+        '<div class="mt-12 grid gap-6 lg:grid-cols-3">' + plans + '</div>' +
+        '<p class="mt-6 flex items-center justify-center gap-2 text-xs text-muted">' + icon('shield-check', { size: 15 }) + t('pricing.guarantee') + '</p>' +
+        comparison +
+        '<section class="mt-16"><h2 class="font-bold text-heading text-title-sm">' + t('pricing.faqTitle') + '</h2>' +
+        '<div class="mt-6">' + UI.faqAccordion(Data.FAQ_KEYS, openFaq) + '</div></section>' +
+        '</div>';
+
+      document.querySelectorAll('[data-cycle]').forEach((el) =>
+        el.addEventListener('click', () => { yearly = el.getAttribute('data-cycle') === 'true'; window.renderPage(); })
+      );
+      document.querySelectorAll('[data-faq]').forEach((el) =>
+        el.addEventListener('click', () => {
+          const key = el.getAttribute('data-faq');
+          openFaq = openFaq === key ? null : key;
+          window.renderPage();
+        })
+      );
+    };
+  </script>
+  <script src="assets/js/layout.js"></script>
+</body>
+</html>
